@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Toast & Modal insertion
+    // Sisipkan toast & modal
     if (!document.getElementById('custom-toast')) {
         const toastHTML = `
         <div id="custom-toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 transform scale-90 opacity-0 pointer-events-none transition-all duration-300 ease-out max-w-sm w-[90%] bg-slate-900 text-white rounded-2xl shadow-xl border border-slate-800 p-4 flex items-center gap-3">
@@ -81,8 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimeout(waTooltipTimer);
             tooltip.style.maxWidth = '0'; tooltip.style.opacity = '0';
             waTooltipVisible = false;
-            const targetWA = typeof NOMOR_WA !== 'undefined' ? NOMOR_WA : '6281234567890';
-            window.open(`https://wa.me/${targetWA}?text=Halo Luki, saya ingin bertanya tentang produk digital Anda.`, '_blank');
+            window.open(`https://wa.me/${NOMOR_WA}?text=Halo Luki, saya ingin bertanya tentang produk digital Anda.`, '_blank');
         }
     };
     document.addEventListener('click', function(e) {
@@ -94,18 +93,136 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Halaman deteksi
     const path = window.location.pathname;
+
+    // INDEX
     if (path.includes('index.html') || path === '/' || path.endsWith('/')) {
         if (typeof muatKatalog === 'function') muatKatalog();
     }
+
+    // VIEW PRODUK
     if (path.includes('view.html')) {
-        // muatSpesifikasiProduk() akan dipanggil di view.html, tapi kita pastikan
-        if (typeof muatSpesifikasiProduk === 'function') muatSpesifikasiProduk();
+        async function muatSpesifikasiProduk() {
+            const idTarget = new URLSearchParams(window.location.search).get('id');
+            if (!idTarget) {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error-box').classList.remove('hidden');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_KATALOG}?get_katalog=true`);
+                const semua = await response.json();
+                const produk = semua.find(p => {
+                    const id = p["id produk"] || p["id_produk"] || p["id"] || '';
+                    return id.toString().trim() === idTarget.trim();
+                });
+                if (!produk) throw new Error("Tidak ditemukan");
+
+                window.detailProdukView = {
+                    id: produk["id produk"] || produk["id_produk"] || produk["id"],
+                    nama: produk["nama produk"] || produk["nama_produk"] || "Tanpa Nama",
+                    kategori: produk["kategori"] || "Digital",
+                    deskripsi: produk["deskripsi"] || "Tidak ada deskripsi.",
+                    harga: Number(produk["harga"]) || 0,
+                    diskon: Number(produk["diskon"]) || 0,
+                    hargaFinal: (Number(produk["harga"]) || 0) * (1 - (Number(produk["diskon"]) || 0) / 100),
+                    fotoUtama: produk["foto 1"] || produk["foto_1"] || "https://placehold.co/300x300?text=No+Image",
+                    foto: []
+                };
+                for (let i = 1; i <= 5; i++) {
+                    const key = `foto_${i}`;
+                    if (produk[key]) window.detailProdukView.foto.push(produk[key]);
+                }
+                if (window.detailProdukView.foto.length === 0) {
+                    window.detailProdukView.foto.push(window.detailProdukView.fotoUtama);
+                }
+                if (produk["video preview"] || produk["video"]) {
+                    const videoUrl = produk["video preview"] || produk["video"];
+                    const match = videoUrl.match(/(?:youtu\.be\/|v\/|embed\/|watch\?v=)([^#\&\?]{11})/);
+                    if (match) window.detailProdukView.video = `https://www.youtube.com/embed/${match[1]}`;
+                }
+
+                document.getElementById('prod-nama').innerText = window.detailProdukView.nama;
+                document.getElementById('prod-kategori').innerText = window.detailProdukView.kategori.toUpperCase();
+                document.getElementById('prod-deskripsi').innerText = window.detailProdukView.deskripsi;
+                document.getElementById('prod-harga-final').innerText = formatRupiah(window.detailProdukView.hargaFinal);
+                if (window.detailProdukView.diskon > 0) {
+                    document.getElementById('prod-harga-asli').classList.remove('hidden');
+                    document.getElementById('prod-harga-asli').innerText = formatRupiah(window.detailProdukView.harga);
+                    document.getElementById('prod-diskon-badge').classList.remove('hidden');
+                    document.getElementById('prod-diskon-badge').innerText = `${window.detailProdukView.diskon}% OFF`;
+                }
+
+                const track = document.getElementById('media-carousel-track');
+                const thumbTrack = document.getElementById('thumbnail-track');
+                track.innerHTML = ''; thumbTrack.innerHTML = '';
+                const mediaSlots = window.detailProdukView.foto.map(f => ({ type: 'image', url: f }));
+                if (window.detailProdukView.video) {
+                    mediaSlots.push({
+                        type: 'video',
+                        embedUrl: window.detailProdukView.video,
+                        thumbUrl: `https://img.youtube.com/vi/${window.detailProdukView.video.split('/').pop()}/0.jpg`
+                    });
+                }
+                mediaSlots.forEach((media, idx) => {
+                    const slide = document.createElement('div');
+                    slide.id = `slide-item-${idx}`;
+                    slide.className = "w-full shrink-0 snap-start flex items-center justify-center min-h-[240px]";
+                    if (media.type === 'image') {
+                        slide.innerHTML = `<img src="${media.url}" class="w-full h-auto block select-none">`;
+                    } else {
+                        slide.innerHTML = `<div class="w-full aspect-video bg-black flex items-center justify-center"><iframe class="w-full h-full border-0" src="${media.embedUrl}?mute=1" allowfullscreen></iframe></div>`;
+                    }
+                    track.appendChild(slide);
+                    const thumb = document.createElement('button');
+                    thumb.className = "thumb-item-box w-11 h-11 rounded-lg border border-slate-200 overflow-hidden bg-slate-100 relative shrink-0 transition-all cursor-pointer";
+                    thumb.innerHTML = `<img src="${media.type === 'image' ? media.url : media.thumbUrl}" class="w-full h-full object-cover">${media.type === 'video' ? '<div class="absolute inset-0 bg-black/40 flex items-center justify-center text-white"><span class="material-icons-round text-[16px]">play_circle</span></div>' : ''}`;
+                    thumb.onclick = () => document.getElementById(`slide-item-${idx}`).scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+                    thumbTrack.appendChild(thumb);
+                });
+                document.getElementById('carousel-indicator-badge').innerText = `1 / ${mediaSlots.length}`;
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('konten-produk').classList.remove('hidden');
+                perbaruiBadgeKatalog();
+            } catch (e) {
+                console.error(e);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error-box').classList.remove('hidden');
+            }
+        }
+        muatSpesifikasiProduk();
+
+        window.masukKeKeranjangSistem = function() {
+            const p = window.detailProdukView;
+            if (!p) return;
+            let keranjang = JSON.parse(localStorage.getItem('keranjang_bumona')) || [];
+            const index = keranjang.findIndex(item => item.id_produk === p.id);
+            if (index > -1) {
+                keranjang[index].quantity = (keranjang[index].quantity || 1) + 1;
+            } else {
+                keranjang.push({
+                    id_produk: p.id,
+                    nama: p.nama,
+                    harga: p.hargaFinal,
+                    foto: p.fotoUtama,
+                    kategori: p.kategori,
+                    quantity: 1
+                });
+            }
+            localStorage.setItem('keranjang_bumona', JSON.stringify(keranjang));
+            perbaruiBadgeKatalog();
+            tampilkanToast(`"${p.nama}" ditambahkan ke keranjang.`, 'success');
+            document.getElementById('btn-tambah-keranjang')?.classList.add('animasi-klik');
+            setTimeout(() => { window.location.href = 'keranjang.html'; }, 250);
+        };
     }
+
+    // KERANJANG
     if (path.includes('keranjang.html')) {
         if (typeof muatHalamanKeranjang === 'function') muatHalamanKeranjang();
     }
+
+    // ADMIN
     if (path.includes('admin.html')) {
         window.verifikasiLoginAdmin = function() {
             const pass = document.getElementById('pass-admin').value;
@@ -118,6 +235,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
     }
+
+    // RIWAYAT
+    if (path.includes('riwayat.html')) {
+        // tidak ada auto-load
+    }
+
+    // SUKSES
     if (path.includes('sukses.html')) {
         const tx = JSON.parse(localStorage.getItem('checkout_terakhir'));
         if (!tx) { window.location.href = 'index.html'; return; }

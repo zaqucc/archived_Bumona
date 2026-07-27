@@ -1,5 +1,3 @@
-// api.js - Semua Panggilan API (Menggunakan API_KATALOG dan API_TRANSAKSI)
-
 async function ambilProdukDariServer() {
     try {
         const response = await fetch(`${API_KATALOG}?get_katalog=true`);
