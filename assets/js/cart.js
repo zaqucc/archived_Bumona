@@ -88,7 +88,6 @@ function hapusItem(index) {
     muatHalamanKeranjang();
 }
 
-// Rekening (dummy)
 const databaseRekening = {
     'Dana': { nomor: '0895-1234-5678', nama: 'Luki Bumona' },
     'Ovo': { nomor: '0895-1234-5678', nama: 'Luki Bumona' },
@@ -144,7 +143,7 @@ async function prosesTransaksi() {
     tampilkanModal("Memproses", "Mengunggah bukti pembayaran...", "process");
     let buktiBase64;
     try {
-        buktiBase64 = await konversiKeBase64(file);
+        buktiBase64 = await kompresGambar(file, 300, 0.4);
     } catch {
         tampilkanToast("Gagal membaca file.", "error");
         return;
@@ -163,21 +162,7 @@ async function prosesTransaksi() {
     };
 
     try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const text = await response.text();
-        // DEBUGGING: Tampilkan respons mentah
-        alert("STATUS: " + response.status + "\nRESPON: " + text);
-        let result;
-        try {
-            result = JSON.parse(text);
-        } catch (e) {
-            alert("Gagal parse JSON: " + text);
-            throw new Error("Respons bukan JSON");
-        }
+        const result = await kirimTransaksi(payload);
         document.getElementById('custom-modal')?.classList.add('opacity-0', 'pointer-events-none');
         if (result.status === 'success') {
             localStorage.setItem('checkout_terakhir', JSON.stringify({
@@ -191,10 +176,9 @@ async function prosesTransaksi() {
                 window.location.href = 'sukses.html';
             });
         } else {
-            tampilkanToast("Gagal: " + (result.message || "Respon tidak valid"), "error");
+            tampilkanToast("Gagal: " + (result.message || 'Respons tidak valid'), "error");
         }
     } catch (err) {
-        alert("FETCH ERROR: " + err.message);
         document.getElementById('custom-modal')?.classList.add('opacity-0', 'pointer-events-none');
         tampilkanToast("Terjadi kesalahan server: " + err.message, "error");
     }
