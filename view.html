@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Produk - Archived bumona</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-orange-100 min-h-screen pb-32">
+
+    <!-- HEADER NAVIGATION -->
+    <header class="bg-white/95 backdrop-blur-md px-4 py-3 border-b border-slate-100 sticky top-0 z-40">
+        <div class="max-w-xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="w-9 h-9 rounded-xl border border-slate-200/70 flex items-center justify-center text-slate-700 bg-white hover:bg-slate-50 active:scale-95 transition cursor-pointer shadow-3xs">
+                    <span class="material-icons-round text-[20px]">arrow_back</span>
+                </a>
+                <div class="flex flex-col justify-center">
+                    <h1 class="text-[14px] font-bold text-slate-900 tracking-tight leading-none mb-1">detail produk</h1>
+                    <p class="text-[8.5px] text-slate-400 font-bold tracking-widest uppercase leading-none">archived bumona</p>
+                </div>
+            </div>
+            
+            <a href="keranjang.html" class="w-9 h-9 rounded-xl border border-slate-200/70 flex items-center justify-center text-slate-700 bg-white hover:bg-slate-50 active:scale-95 transition cursor-pointer shadow-3xs relative">
+                <span class="material-icons-round text-[19px]">shopping_cart</span>
+                <span id="badge-keranjang-count" class="hidden absolute -top-1 -right-1 bg-orange-600 text-white text-[9px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-white shadow-2xs">0</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- LOADING & ERROR STATE -->
+    <div id="loading" class="text-center py-24 max-w-xl mx-auto">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+        <p class="text-slate-400 text-[11px] font-medium mt-4 tracking-wide">memuat spesifikasi produk...</p>
+    </div>
+    
+    <div id="error-box" class="hidden text-center py-16 max-w-xl mx-auto px-6 bg-white border border-slate-100 rounded-2xl m-4 shadow-3xs">
+        <span class="material-icons-round text-red-400 text-[40px] mb-2">error_outline</span>
+        <h2 class="text-[14px] font-bold text-slate-800">produk tidak ditemukan</h2>
+        <p class="text-slate-400 text-[11px] mt-1 leading-relaxed">identifikasi produk tidak valid atau telah diarsipkan oleh kreator.</p>
+        <a href="index.html" class="inline-block mt-4 bg-slate-900 text-white text-[11px] font-bold px-4 py-2 rounded-xl">kembali ke katalog</a>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main id="konten-produk" class="max-w-xl mx-auto p-4 flex flex-col gap-3.5 hidden">
+        
+        <!-- CAROUSEL -->
+        <div class="bg-white border border-slate-100 rounded-2xl p-2 shadow-3xs flex flex-col gap-2.5 relative">
+            <div class="relative w-full rounded-xl overflow-hidden bg-slate-50 flex items-center justify-center">
+                <div id="media-carousel-track" class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar w-full items-start"></div>
+                <div id="carousel-indicator-badge" class="absolute bottom-3 right-3 bg-black/60 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded-md tracking-wider pointer-events-none z-20">1 / 1</div>
+            </div>
+            <div id="thumbnail-track" class="flex gap-2 overflow-x-auto no-scrollbar pb-0.5 items-center px-0.5"></div>
+        </div>
+
+        <!-- INFORMASI PRODUK -->
+        <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-3xs relative overflow-hidden group">
+            <div class="relative z-10 flex flex-col gap-1.5">
+                <span id="prod-kategori" class="text-[9.5px] font-bold tracking-widest uppercase text-orange-600 bg-orange-50 px-2 py-0.5 rounded w-max">DIGITAL</span>
+                <h2 id="prod-nama" class="font-extrabold text-slate-900 text-[16px] leading-snug tracking-tight mt-1">nama produk digital premium</h2>
+                <div class="flex items-center gap-2 mt-2.5 pt-3 border-t border-slate-100/70">
+                    <span id="prod-harga-final" class="text-[18px] font-extrabold text-slate-900 tracking-tight">Rp 0</span>
+                    <span id="prod-harga-asli" class="text-[11px] text-slate-400 line-through font-medium mt-0.5 hidden">Rp 0</span>
+                    <span id="prod-diskon-badge" class="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-3xs hidden">0% OFF</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- DESKRIPSI -->
+        <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-3xs flex flex-col gap-3">
+            <h3 class="text-[12px] font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+                <span class="material-icons-round text-[16px] text-slate-400">description</span> deskripsi produk
+            </h3>
+            <div id="prod-deskripsi" class="text-[11.5px] text-slate-600 font-normal leading-relaxed whitespace-pre-line text-justify tracking-wide">
+                keterangan rinci mengenai produk digital.
+            </div>
+        </div>
+
+        <!-- FLOATING ACTION BUTTON -->
+        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-slate-100 z-40 shadow-md">
+            <div class="max-w-xl mx-auto flex gap-3">
+                <button id="btn-tambah-keranjang" onclick="masukKeKeranjangSistem()" class="flex-1 bg-orange-600 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 text-[12.5px] hover:bg-orange-700 active:scale-[0.98] transition cursor-pointer shadow-sm shadow-orange-600/10 tracking-wide">
+                    <span class="material-icons-round text-[17px]">add_shopping_cart</span>
+                    masukkan ke keranjang belanja
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- SCRIPTS MODULAR -->
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/helper.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/cart.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

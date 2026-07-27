@@ -11,25 +11,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen pb-20 relative">
 
-    <div id="custom-toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 transform scale-90 opacity-0 pointer-events-none transition-all duration-300 ease-out max-w-sm w-[90%] bg-slate-900 text-white rounded-2xl shadow-xl border border-slate-800 p-4 flex items-center gap-3">
-        <div id="toast-icon-box" class="w-8 h-8 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center shrink-0">
-            <i id="toast-icon" class="bi bi-exclamation-circle-fill text-[16px]"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-            <p id="toast-title" class="text-[11px] text-slate-400 font-bold uppercase tracking-wider leading-none mb-1">Pemberitahuan</p>
-            <p id="toast-message" class="text-[12.5px] font-semibold text-slate-100 truncate leading-tight">Pesan...</p>
-        </div>
-    </div>
-
+    <!-- LOGIN MODAL -->
     <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md transition-all duration-300">
         <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 transform scale-100 transition-all duration-300 flex flex-col items-center">
             <div class="w-12 h-12 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center mb-3">
@@ -47,6 +33,7 @@
         </div>
     </div>
 
+    <!-- IMAGE PREVIEW MODAL -->
     <div id="img-modal" onclick="tutupPratinjauGambar()" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-xs p-4 opacity-0 pointer-events-none transition-all duration-200">
         <div class="max-w-md w-full max-h-[80vh] rounded-2xl overflow-hidden shadow-2xl relative" onclick="event.stopPropagation()">
             <img id="img-target-preview" src="" alt="Bukti Transfer" class="w-full h-full object-contain bg-black">
@@ -56,6 +43,7 @@
         </div>
     </div>
 
+    <!-- DASHBOARD UTAMA -->
     <div id="admin-dashboard-layout" class="hidden">
         <header class="bg-white px-4 py-3 border-b border-slate-100 sticky top-0 z-40 shadow-2xs">
             <div class="max-w-xl mx-auto flex justify-between items-center">
@@ -68,7 +56,7 @@
                         <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Control Panel</span>
                     </div>
                 </div>
-                <button onclick="tarikSeluruhOrderSheet2()" class="w-8 h-8 bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-600 rounded-xl flex items-center justify-center transition-all cursor-pointer">
+                <button onclick="muatDataAdmin()" class="w-8 h-8 bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-600 rounded-xl flex items-center justify-center transition-all cursor-pointer">
                     <span class="material-icons-round text-sm">refresh</span>
                 </button>
             </div>
@@ -106,200 +94,11 @@
         </main>
     </div>
 
-    <script src="utils.js"></script>
-    <script>
-        let semuaOrderRaw = [];
-        let toastAdminTimer = null;
-
-        function verifikasiLoginAdmin() {
-            const inputPass = document.getElementById('pass-admin').value;
-            if (inputPass === 'admin123') {
-                document.getElementById('login-modal').classList.add('hidden');
-                document.getElementById('admin-dashboard-layout').classList.remove('hidden');
-                tarikSeluruhOrderSheet2();
-            } else {
-                alert("Password kode akses admin salah!");
-            }
-        }
-
-        function tampilkanToastAdmin(pesan, jenis = 'warning') {
-            const toast = document.getElementById('custom-toast');
-            const toastMsg = document.getElementById('toast-message');
-            if (!toast || !toastMsg) return;
-            clearTimeout(toastAdminTimer);
-            toastMsg.innerText = pesan;
-            toast.classList.remove('opacity-0', 'scale-90', 'pointer-events-none');
-            toast.classList.add('opacity-100', 'scale-100', 'translate-y-2');
-            toastAdminTimer = setTimeout(() => {
-                toast.classList.remove('opacity-100', 'scale-100', 'translate-y-2');
-                toast.classList.add('opacity-0', 'scale-90', 'pointer-events-none');
-            }, 3000);
-        }
-
-        async function tarikSeluruhOrderSheet2() {
-            const loading = document.getElementById('admin-loading');
-            const kosong = document.getElementById('admin-order-kosong');
-            const kontainer = document.getElementById('kontainer-order-admin');
-            const descKosong = document.getElementById('txt-empty-desc');
-
-            loading.classList.remove('hidden');
-            kosong.classList.add('hidden');
-            kontainer.classList.add('hidden');
-
-            try {
-                // PARAMETER GANDA: Memaksa server memutus jalur Sheet1 dan mengunci ke Sheet2 secara mutlak
-                const respon = await fetch(`${api_url}?admin_pull=true&action=tarik_admin`);
-                if (!respon.ok) throw new Error("Server bermasalah");
-                
-                const data_mentah = await respon.json();
-                loading.classList.add('hidden');
-
-                if (!Array.isArray(data_mentah) || data_mentah.length === 0) {
-                    descKosong.innerText = "Belum ada data pesanan masuk di Sheet2.";
-                    kosong.classList.remove('hidden');
-                    return;
-                }
-
-                semuaOrderRaw = data_mentah;
-                renderCardOrderAdmin(semuaOrderRaw);
-
-            } catch (error) {
-                console.error("Gagal sinkron:", error);
-                loading.classList.add('hidden');
-                kosong.classList.remove('hidden');
-                descKosong.innerHTML = "Gagal memproses data spreadsheet cloud.";
-                tampilkanToastAdmin("Gagal memuat data dari spreadsheet cloud.", "warning");
-            }
-        }
-
-        function renderCardOrderAdmin(daftarData) {
-            const kontainer = document.getElementById('kontainer-order-admin');
-            const kosong = document.getElementById('admin-order-kosong');
-            
-            if (daftarData.length === 0) {
-                kontainer.classList.add('hidden');
-                kosong.classList.remove('hidden');
-                return;
-            }
-
-            kontainer.classList.remove('hidden');
-            kosong.classList.add('hidden');
-            kontainer.innerHTML = '';
-
-            let kalkulasiOmzet = 0;
-            let antreanPending = 0;
-            let htmlCard = '';
-
-            [...daftarData].reverse().forEach(order => {
-                // PEMBACAAN LEBIH AMAN: Kompatibel dengan Spasi, Underscore, dan Huruf Kecil murni
-                const idOrder = order["idorder"] || order["id order"] || order["id_order"] || "ORD-ERR";
-                const tanggal = order["tanggal"] || "-";
-                const nama = order["namapelanggan"] || order["nama pelanggan"] || order["nama_pelanggan"] || "Anonim";
-                const email = order["emailpelanggan"] || order["email pelanggan"] || order["email_pelanggan"] || "-";
-                const wa = order["nomorwhatsapp"] || order["nomor whatsapp"] || order["nomor_whatsapp"] || "";
-                const item = order["itembelanja"] || order["item belanja"] || order["item_belanja"] || "";
-                const total = Number(order["totalbayar"] || order["total bayar"] || order["total_bayar"] || 0);
-                const metode = order["metodepembayaran"] || order["metode pembayaran"] || order["metode_pembayaran"] || "-";
-                const status = (order["status"] || "Pending").toString().trim();
-                const buktiImg = order["buktipembayaran"] || order["bukti pembayaran"] || order["bukti_pembayaran"] || "";
-
-                if (status.toLowerCase() === 'sukses' || status.toLowerCase() === 'selesai') {
-                    kalkulasiOmzet += total;
-                } else if (status.toLowerCase() === 'pending') {
-                    antreanPending++;
-                }
-
-                let badgeColor = "bg-amber-50 text-amber-600 border-amber-100";
-                if (status.toLowerCase() === 'sukses' || status.toLowerCase() === 'selesai') badgeColor = "bg-emerald-50 text-emerald-600 border-emerald-100";
-                if (status.toLowerCase() === 'gagal' || status.toLowerCase() === 'batal') badgeColor = "bg-rose-50 text-rose-600 border-rose-100";
-
-                htmlCard += `
-                <div class="card-item-admin bg-white rounded-2xl p-4.5 border border-slate-100 shadow-2xs space-y-3.5" data-search="${idOrder.toString().toLowerCase()} ${nama.toString().toLowerCase()}">
-                    <div class="flex justify-between items-start border-b border-slate-50 pb-2.5">
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">ID Order & Tanggal</span>
-                            <span class="text-xs font-extrabold text-slate-900 tracking-tight">${idOrder}</span>
-                            <span class="text-[10px] font-medium text-slate-400 block mt-0.5">${tanggal}</span>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-[10px] font-bold px-2 py-1 rounded-lg border uppercase ${badgeColor}">${status}</span>
-                        </div>
-                    </div>
-                    <div class="bg-slate-50/50 p-3 rounded-xl border border-slate-100 space-y-2 text-[11px]">
-                        <p class="font-bold text-slate-800">Nama: ${nama}</p>
-                        <p class="text-slate-700">Email: ${email}</p>
-                        <p class="text-slate-800">WhatsApp: ${wa}</p>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3 text-[11px]">
-                        <div class="bg-slate-50 p-2.5 rounded-xl">
-                            <span class="text-[9px] text-slate-400 font-bold block">Item Belanja</span>
-                            <p class="font-bold text-slate-700">${item}</p>
-                        </div>
-                        <div class="bg-slate-50 p-2.5 rounded-xl">
-                            <span class="text-[9px] text-slate-400 font-bold block">Total Bayar</span>
-                            <p class="text-sm font-black text-orange-600">${typeof format_rupiah === 'function' ? format_rupiah(total) : 'Rp ' + total}</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-2 pt-1 items-center justify-between border-t border-slate-50 mt-1 text-[11px]">
-                        <div>
-                            ${buktiImg && buktiImg.length > 50 ? `
-                                <button onclick="bukaPratinjauGambar('${buktiImg}')" class="font-bold text-orange-600 cursor-pointer bg-orange-50 px-2.5 py-1.5 rounded-lg border border-orange-100/50 shadow-3xs">Lihat Bukti</button>
-                            ` : `<span class="text-slate-400 italic">Tanpa Gambar</span>`}
-                        </div>
-                        ${status.toLowerCase() === 'pending' ? `
-                            <div class="flex gap-1.5">
-                                <button onclick="perbaruiStatusTransaksi('${idOrder}', 'Gagal')" class="bg-rose-50 text-rose-600 font-bold px-3 py-1.5 rounded-lg border border-rose-100 cursor-pointer">Tolak</button>
-                                <button onclick="perbaruiStatusTransaksi('${idOrder}', 'Sukses')" class="bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg shadow-xs cursor-pointer">Setujui</button>
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>`;
-            });
-
-            kontainer.innerHTML = htmlCard;
-            document.getElementById('stat-omzet').innerText = typeof format_rupiah === 'function' ? format_rupiah(kalkulasiOmzet) : 'Rp ' + kalkulasiOmzet;
-            document.getElementById('stat-pending').innerText = `${antreanPending} Order`;
-        }
-
-        function filterTabelOrderAdmin() {
-            const kataKunci = document.getElementById('input-cari-admin').value.toLowerCase();
-            document.querySelectorAll('.card-item-admin').forEach(card => {
-                card.classList.toggle('hidden', !card.getAttribute('data-search').includes(kataKunci));
-            });
-        }
-
-        function bukaPratinjauGambar(srcBase64) {
-            const modal = document.getElementById('img-modal');
-            document.getElementById('img-target-preview').src = srcBase64;
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-        }
-
-        function tutupPratinjauGambar() {
-            const modal = document.getElementById('img-modal');
-            modal.classList.add('opacity-0', 'pointer-events-none');
-        }
-
-        async function perbaruiStatusTransaksi(idOrder, statusBaru) {
-            if(!confirm(`Apakah Anda yakin merubah status order ${idOrder} menjadi [${statusBaru}]?`)) return;
-            tampilkanToastAdmin("Memperbarui status...", "info");
-            try {
-                const respon = await fetch(api_url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: "update_status", id_order: idOrder, status: statusBaru })
-                });
-                const hasil = await respon.json();
-                if (hasil.status === 'success') {
-                    tampilkanToastAdmin("Status berhasil diperbarui!", "success");
-                    setTimeout(() => { tarikSeluruhOrderSheet2(); }, 1500);
-                } else {
-                    throw new Error(hasil.message);
-                }
-            } catch (err) {
-                tampilkanToastAdmin("Sukses mengirim data. Memperbarui...", "success");
-                setTimeout(() => { tarikSeluruhOrderSheet2(); }, 2000);
-            }
-        }
-    </script>
+    <!-- SCRIPTS MODULAR -->
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/helper.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/admin.js"></script>
+    <script src="assets/js/main.js"></script>
 </body>
 </html>

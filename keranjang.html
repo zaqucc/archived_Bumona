@@ -11,41 +11,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen pb-40 relative">
 
-    <!-- TOAST NOTIFICATION KUSTOM -->
-    <div id="custom-toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 transform scale-90 opacity-0 pointer-events-none transition-all duration-300 ease-out max-w-sm w-[90%] bg-slate-900 text-white rounded-2xl shadow-xl border border-slate-800 p-4 flex items-center gap-3">
-        <div id="toast-icon-box" class="w-8 h-8 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center shrink-0">
-            <i id="toast-icon" class="bi bi-exclamation-circle-fill text-[16px]"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-            <p id="toast-title" class="text-[11px] text-slate-400 font-bold uppercase tracking-wider leading-none mb-1">Pemberitahuan</p>
-            <p id="toast-message" class="text-[12.5px] font-semibold text-slate-100 truncate leading-tight">Pesan notifikasi...</p>
-        </div>
-    </div>
-
-    <!-- MODAL POP-UP UTAMA -->
-    <div id="custom-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
-        <div class="absolute inset-0 bg-slate-950/40 backdrop-blur-xs"></div>
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 relative z-10 transform scale-95 transition-all duration-300 flex flex-col items-center text-center">
-            <div id="modal-icon-container" class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
-                <span id="modal-icon" class="material-icons-round text-3xl">info</span>
-            </div>
-            <h3 id="modal-title" class="text-base font-extrabold text-slate-900 tracking-tight mb-2">Judul Pop-up</h3>
-            <p id="modal-message" class="text-xs font-medium text-slate-500 leading-relaxed mb-6">Deskripsi pesan di dalam pop-up dialog.</p>
-            <button id="modal-btn" class="w-full text-white font-bold text-xs py-3.5 rounded-xl transition-all cursor-pointer shadow-xs">
-                Mengerti
-            </button>
-        </div>
-    </div>
-
+    <!-- HEADER -->
     <header class="bg-white/95 backdrop-blur-md px-4 py-3 border-b border-slate-100 sticky top-0 z-40">
         <div class="max-w-xl mx-auto flex justify-between items-center">
             <a href="index.html" class="flex items-center text-slate-600 hover:text-slate-900 transition-colors">
@@ -58,10 +28,10 @@
     </header>
 
     <main class="max-w-xl mx-auto px-4 mt-6">
-        <!-- KONTAINER LIST ITEM DI KERANJANG -->
+        <!-- DAFTAR ITEM KERANJANG -->
         <div id="kontainer-keranjang" class="space-y-4"></div>
 
-        <!-- FORMULIR DATA PELANGGAN & CHECKOUT -->
+        <!-- FORMULIR CHECKOUT -->
         <div id="form-transaksi" class="mt-8 bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-5 hidden">
             <h2 class="text-sm font-bold text-slate-900 tracking-wide uppercase">Detail Pelanggan</h2>
             
@@ -76,7 +46,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 mb-1">Nomor WhatsApp</label>
-                    <input type="number" id="nomor_whatsapp" placeholder="Contoh: 0812345678" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 focus:bg-white transition-all">
+                    <input type="text" id="nomor_whatsapp" placeholder="Contoh: 0812345678" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 focus:bg-white transition-all">
                 </div>
             </div>
 
@@ -97,10 +67,9 @@
             <div id="opsi-spesifik-bayar" class="hidden bg-gradient-to-br from-orange-50 to-amber-50/60 border border-orange-100/80 rounded-2xl p-4.5 relative overflow-hidden shadow-xs space-y-4">
                 <div class="relative z-10">
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Pilih Opsi Pembayaran</label>
-                    <select id="pilihan_metode" onchange="perbaruiInformasiRekening()" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-700 focus:outline-none focus:border-orange-500 transition-all shadow-3xs"></select>
+                    <select id="pilihan_metode" onchange="perbaruiInfoRekening()" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-700 focus:outline-none focus:border-orange-500 transition-all shadow-3xs"></select>
                 </div>
                 
-                <!-- BOX DETAIL INFO REKENING -->
                 <div id="box-rekening" class="bg-white border border-orange-200/60 p-4 rounded-xl shadow-3xs space-y-3 relative z-10">
                     <div class="flex justify-between items-center">
                         <span id="txt-label-metode" class="text-[8.5px] font-extrabold tracking-widest uppercase text-orange-700 bg-orange-100/80 px-1.5 py-0.5 rounded shadow-3xs">Metode</span>
@@ -108,7 +77,6 @@
                             <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Data Terverifikasi
                         </div>
                     </div>
-                    
                     <div class="space-y-0.5">
                         <p class="text-[10px] text-slate-500 font-semibold tracking-wide">Nomor Rekening / E-Wallet:</p>
                         <div class="flex items-center justify-between bg-slate-50 border border-slate-100 p-2.5 rounded-xl mt-1">
@@ -118,13 +86,11 @@
                             </button>
                         </div>
                     </div>
-
                     <div class="pt-2 flex justify-between text-[11px] font-medium text-slate-600 border-t border-slate-100">
                         <p>Atas Nama: <span id="txt-atas-nama" class="font-bold text-slate-900">Luki Bumona</span></p>
                     </div>
                 </div>
 
-                <!-- WAJIB UPLOAD BUKTI PEMBAYARAN -->
                 <div class="pt-1 relative z-10">
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Upload Bukti Pembayaran <span class="text-red-500 font-bold">*Wajib</span></label>
                     <div class="flex items-center gap-3 bg-white p-3 border border-orange-200/60 rounded-xl shadow-3xs">
@@ -132,12 +98,11 @@
                     </div>
                 </div>
 
-                <!-- DEKORASI BULATAN BOX UTAMA SPANDUK -->
                 <div class="absolute -right-8 -bottom-8 w-24 h-24 bg-orange-300/15 rounded-full pointer-events-none"></div>
             </div>
         </div>
 
-        <!-- TAMPILAN JIKA KERANJANG KOSONG -->
+        <!-- KERANJANG KOSONG -->
         <div id="keranjang-kosong" class="text-center py-20 hidden">
             <span class="material-icons-round text-slate-300 text-6xl mb-3">shopping_bag</span>
             <p class="text-slate-500 font-medium text-sm">Keranjang belanja Anda masih kosong</p>
@@ -145,7 +110,7 @@
         </div>
     </main>
 
-    <!-- FLOATING FOOTER TOTAL TAGIHAN & TOMBOL CHECKOUT -->
+    <!-- FOOTER CHECKOUT -->
     <footer id="footer-checkout" class="bg-white/95 backdrop-blur-md border-t border-slate-100 fixed bottom-0 left-0 right-0 py-4 px-4 z-40 hidden">
         <div class="max-w-xl mx-auto flex items-center justify-between">
             <div>
@@ -158,303 +123,11 @@
         </div>
     </footer>
 
-    <!-- MEMANGGIL FILE UTILS GLOBAL -->
-    <script src="utils.js"></script>
-
-    <script>
-        let dataKeranjang = JSON.parse(localStorage.getItem('keranjang_bumona')) || [];
-        let kategoriTerpilih = '';
-
-        const databaseRekeningContoh = {
-            'Dana': { nomor: '0895-1234-5678', nama: 'Luki Bumona' },
-            'Ovo': { nomor: '0895-1234-5678', nama: 'Luki Bumona' },
-            'ShopeePay': { nomor: '0895-1234-5678', nama: 'Luki Bumona' },
-            'Gopay': { nomor: '0895-1234-5678', nama: 'Luki Bumona' },
-            'LinkAja': { nomor: '0895-1234-5678', nama: 'Luki Bumona' },
-            'Bank BCA': { nomor: '8410-1234-567', nama: 'Luki Bumona' },
-            'Bank Mandiri': { nomor: '1310-0012-3456', nama: 'Luki Bumona' },
-            'Bank BRI': { nomor: '0021-0105-1234-503', nama: 'Luki Bumona' },
-            'Bank BNI': { nomor: '0234-567-890', nama: 'Luki Bumona' }
-        };
-
-        let toastTimer = null;
-        function tampilkanToast(pesan, jenis = 'warning') {
-            const toast = document.getElementById('custom-toast');
-            const toastMsg = document.getElementById('toast-message');
-            const iconBox = document.getElementById('toast-icon-box');
-            const icon = document.getElementById('toast-icon');
-            const title = document.getElementById('toast-title');
-
-            if (!toast || !toastMsg) return;
-            clearTimeout(toastTimer);
-
-            toastMsg.innerText = pesan;
-
-            if (jenis === 'success') {
-                title.innerText = "Berhasil";
-                iconBox.className = "w-8 h-8 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center shrink-0";
-                icon.className = "bi bi-check-circle-fill text-[16px]";
-            } else if (jenis === 'info') {
-                title.innerText = "Informasi";
-                iconBox.className = "w-8 h-8 bg-sky-500/10 text-sky-400 rounded-xl flex items-center justify-center shrink-0";
-                icon.className = "bi bi-info-circle-fill text-[16px]";
-            } else {
-                title.innerText = "Peringatan";
-                iconBox.className = "w-8 h-8 bg-rose-500/10 text-rose-400 rounded-xl flex items-center justify-center shrink-0";
-                icon.className = "bi bi-exclamation-circle-fill text-[16px]";
-            }
-
-            toast.classList.remove('opacity-0', 'scale-90', 'pointer-events-none');
-            toast.classList.add('opacity-100', 'scale-100', 'translate-y-2');
-
-            toastTimer = setTimeout(() => {
-                toast.classList.remove('opacity-100', 'scale-100', 'translate-y-2');
-                toast.classList.add('opacity-0', 'scale-90', 'pointer-events-none');
-            }, 3000);
-        }
-
-        function tampilkanModal(judul, pesan, jenis = 'info', callback = null) {
-            const modal = document.getElementById('custom-modal');
-            const mTitle = document.getElementById('modal-title');
-            const mMsg = document.getElementById('modal-message');
-            const mIconBox = document.getElementById('modal-icon-container');
-            const mIcon = document.getElementById('modal-icon');
-            const mBtn = document.getElementById('modal-btn');
-
-            mTitle.innerText = judul;
-            mMsg.innerText = pesan;
-
-            if (jenis === 'success') {
-                mIconBox.className = "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-sm bg-emerald-50 text-emerald-500";
-                mIcon.innerText = "check_circle";
-                mBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3.5 rounded-xl transition-all cursor-pointer shadow-xs";
-            } else if (jenis === 'process') {
-                mIconBox.className = "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-sm bg-orange-50 text-orange-600 animate-bounce";
-                mIcon.innerText = "hourglass_top";
-                mBtn.className = "w-full bg-slate-400 text-white font-bold text-xs py-3.5 rounded-xl pointer-events-none opacity-50 shadow-xs";
-            } else {
-                mIconBox.className = "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-sm bg-orange-50 text-orange-600";
-                mIcon.innerText = "info";
-                mBtn.className = "w-full bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs py-3.5 rounded-xl transition-all cursor-pointer shadow-xs";
-            }
-
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            modal.querySelector('.transform').classList.remove('scale-95');
-            modal.querySelector('.transform').classList.add('scale-100');
-
-            mBtn.onclick = function() {
-                modal.classList.add('opacity-0', 'pointer-events-none');
-                modal.querySelector('.transform').classList.remove('scale-100');
-                modal.querySelector('.transform').classList.add('scale-95');
-                if (callback) callback();
-            };
-        }
-
-        function ambilDataKeranjang() {
-            const kontainer = document.getElementById('kontainer-keranjang');
-            const formTransaksi = document.getElementById('form-transaksi');
-            const keranjangKosong = document.getElementById('keranjang-kosong');
-            const footerCheckout = document.getElementById('footer-checkout');
-            const totalTagihan = document.getElementById('total-tagihan');
-
-            if (dataKeranjang.length === 0) {
-                kontainer.innerHTML = '';
-                formTransaksi.classList.add('hidden');
-                footerCheckout.classList.add('hidden');
-                keranjangKosong.classList.remove('hidden');
-                return;
-            }
-
-            keranjangKosong.classList.add('hidden');
-            formTransaksi.classList.remove('hidden');
-            footerCheckout.classList.remove('hidden');
-
-            let htmlItem = '';
-            let kalkulasiTotal = 0;
-
-            dataKeranjang.forEach((item, indeks) => {
-                const kuantitas = item.quantity || 1;
-                const subtotal = item.harga * kuantitas;
-                kalkulasiTotal += subtotal;
-
-                htmlItem += `
-                <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex gap-4 items-center">
-                    <img src="${item.foto || 'https://placehold.co/100x100?text=Digital'}" alt="${item.nama}" class="w-16 h-16 rounded-xl object-cover bg-slate-50 flex-shrink-0">
-                    <div class="flex-1 min-w-0">
-                        <h3 class="text-sm font-bold text-slate-900 truncate">${item.nama}</h3>
-                        <p class="text-xs font-semibold text-slate-400 mt-0.5">${item.kategori || 'Produk Digital'}</p>
-                        <div class="flex items-center justify-between mt-2">
-                            <span class="text-sm font-extrabold text-slate-900">${format_rupiah(item.harga)}</span>
-                            
-                            <div class="flex items-center gap-2 bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg">
-                                <button onclick="aturJumlah(${indeks}, -1)" class="material-icons-round text-xs text-slate-500 hover:text-slate-800 cursor-pointer">remove</button>
-                                <span class="text-xs font-bold text-slate-800 px-1">${kuantitas}</span>
-                                <button onclick="aturJumlah(${indeks}, 1)" class="material-icons-round text-xs text-slate-500 hover:text-slate-800 cursor-pointer">add</button>
-                            </div>
-                        </div>
-                    </div>
-                    <button onclick="hapusItem(${indeks})" class="text-slate-300 hover:text-red-500 transition-colors p-1 cursor-pointer">
-                        <span class="material-icons-round text-xl">delete_outline</span>
-                    </button>
-                </div>`;
-            });
-
-            kontainer.innerHTML = htmlItem;
-            totalTagihan.innerText = format_rupiah(kalkulasiTotal);
-        }
-
-        function aturJumlah(indeks, perubahan) {
-            let kuantitasSaatIni = dataKeranjang[indeks].quantity || 1;
-            kuantitasSaatIni += perubahan;
-            
-            if (kuantitasSaatIni < 1) {
-                hapusItem(indeks);
-                return;
-            }
-            
-            dataKeranjang[indeks].quantity = kuantitasSaatIni;
-            localStorage.setItem('keranjang_bumona', JSON.stringify(dataKeranjang));
-            ambilDataKeranjang();
-        }
-
-        function hapusItem(indeks) {
-            dataKeranjang.splice(indeks, 1);
-            localStorage.setItem('keranjang_bumona', JSON.stringify(dataKeranjang));
-            ambilDataKeranjang();
-        }
-
-        // PERBAIKAN: Menghapus logika injeksi elemen bulatan kecil kustom agar tampilan tombol aktif bersih tanpa lingkaran sisa
-        function pilihKategoriBayar(kategori) {
-            kategoriTerpilih = kategori;
-            const btnEwallet = document.getElementById('btn-e-wallet');
-            const btnBank = document.getElementById('btn-transfer-bank');
-            const opsiSpesifik = document.getElementById('opsi-spesifik-bayar');
-            const pilihanMetode = document.getElementById('pilihan_metode');
-
-            btnEwallet.className = "border border-slate-200 rounded-xl p-4 text-center transition-all cursor-pointer bg-slate-50 text-slate-700 hover:bg-orange-50/50 hover:border-orange-200 flex flex-col items-center justify-center min-h-[76px]";
-            btnBank.className = "border border-slate-200 rounded-xl p-4 text-center transition-all cursor-pointer bg-slate-50 text-slate-700 hover:bg-orange-50/50 hover:border-orange-200 flex flex-col items-center justify-center min-h-[76px]";
-            
-            opsiSpesifik.classList.remove('hidden');
-            pilihanMetode.innerHTML = '';
-
-            if (kategori === 'e-wallet') {
-                btnEwallet.className = "border border-orange-100/80 bg-gradient-to-br from-orange-50 to-amber-50/60 text-slate-900 rounded-xl p-4 text-center transition-all font-extrabold cursor-pointer shadow-xs flex flex-col items-center justify-center min-h-[76px]";
-                
-                const daftarWallet = ['Dana', 'Ovo', 'ShopeePay', 'Gopay', 'LinkAja'];
-                daftarWallet.forEach(wallet => {
-                    pilihanMetode.innerHTML += `<option value="${wallet}">${wallet}</option>`;
-                });
-            } else if (kategori === 'transfer bank') {
-                btnBank.className = "border border-orange-100/80 bg-gradient-to-br from-orange-50 to-amber-50/60 text-slate-900 rounded-xl p-4 text-center transition-all font-extrabold cursor-pointer shadow-xs flex flex-col items-center justify-center min-h-[76px]";
-                
-                const daftarBank = ['Bank BCA', 'Bank Mandiri', 'Bank BRI', 'Bank BNI'];
-                daftarBank.forEach(bank => {
-                    pilihanMetode.innerHTML += `<option value="${bank}">${bank}</option>`;
-                });
-            }
-            perbaruiInformasiRekening();
-        }
-
-        function perbaruiInformasiRekening() {
-            const pilihanMetode = document.getElementById('pilihan_metode').value;
-            const txtLabel = document.getElementById('txt-label-metode');
-            const txtNomor = document.getElementById('txt-nomor-rekening');
-            const txtNama = document.getElementById('txt-atas-nama');
-            
-            if (databaseRekeningContoh[pilihanMetode]) {
-                txtLabel.innerText = pilihanMetode;
-                txtNomor.innerText = databaseRekeningContoh[pilihanMetode].nomor;
-                txtNama.innerText = databaseRekeningContoh[pilihanMetode].nama;
-            }
-        }
-
-        function salinNomorRekening() {
-            const nomor = document.getElementById('txt-nomor-rekening').innerText;
-            const icon = document.getElementById('icon-copy');
-            
-            navigator.clipboard.writeText(nomor).then(() => {
-                tampilkanToast("Nomor rekening berhasil disalin!", "success");
-                icon.innerText = "check";
-                setTimeout(() => { icon.innerText = "content_copy"; }, 2000);
-            }).catch(err => {
-                tampilkanToast("Gagal menyalin nomor.", "warning");
-            });
-        }
-
-        async function prosesTransaksi() {
-            const nama = document.getElementById('nama_pelanggan').value.trim();
-            const email = document.getElementById('email_pelanggan').value.trim();
-            const wa = document.getElementById('nomor_whatsapp').value.trim();
-            const metodeSpesifikTerpilih = document.getElementById('pilihan_metode').value;
-            const fileBukti = document.getElementById('input_bukti_bayar').files[0];
-
-            if (!nama || !email || !wa) {
-                tampilkanToast("Mohon lengkapi seluruh Detail Data Pelanggan.");
-                return;
-            }
-
-            if (!kategoriTerpilih) {
-                tampilkanToast("Silakan pilih kategori metode pembayaran.");
-                return;
-            }
-
-            if (!fileBukti) {
-                tampilkanToast("Anda wajib mengunggah file gambar Bukti Pembayaran!");
-                return;
-            }
-
-            tampilkanModal("Memproses File", "Sedang membaca berkas bukti transfer gambar Anda, mohon tunggu...", "process");
-            
-            let stringBase64Gambar = "";
-            try {
-                stringBase64Gambar = await konversi_ke_base64(fileBukti);
-            } catch (err) {
-                document.getElementById('custom-modal').classList.add('opacity-0', 'pointer-events-none');
-                tampilkanToast("Gagal memproses file gambar. Silakan gunakan file gambar lain.", "warning");
-                return;
-            }
-
-            const idOrderLokal = "ORD-" + new Date().getTime();
-
-            const dataPayload = {
-                id_order: idOrderLokal,
-                nama_pelanggan: nama,
-                email_pelanggan: email,
-                nomor_whatsapp: wa,
-                item_belanja: dataKeranjang.map(item => `${item.nama} (x${item.quantity || 1})`).join(", "),
-                total_bayar: dataKeranjang.reduce((sum, item) => sum + (item.harga * (item.quantity || 1)), 0),
-                metode_pembayaran: `${kategoriTerpilih.toUpperCase()} (${metodeSpesifikTerpilih})`,
-                bukti_pembayaran: stringBase64Gambar
-            };
-
-            try {
-                await fetch(api_url, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dataPayload)
-                });
-
-                document.getElementById('custom-modal').classList.add('opacity-0', 'pointer-events-none');
-                
-                tampilkanModal(
-                    "Pembayaran Terkirim", 
-                    `Pesanan Anda dengan ID ${idOrderLokal} berhasil disimpan ke sistem jaringan. Tim kami akan segera melakukan verifikasi data pembayaran Anda.`, 
-                    "success", 
-                    function() {
-                        localStorage.removeItem('keranjang_bumona');
-                        window.location.href = 'index.html';
-                    }
-                );
-
-            } catch (error) {
-                document.getElementById('custom-modal').classList.add('opacity-0', 'pointer-events-none');
-                console.error("Terjadi kendala server database:", error);
-                tampilkanToast("Terjadi kendala saat menghubungkan ke database server.", "warning");
-            }
-        }
-
-        window.onload = ambilDataKeranjang;
-    </script>
+    <!-- SCRIPTS MODULAR -->
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/helper.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/cart.js"></script>
+    <script src="assets/js/main.js"></script>
 </body>
 </html>

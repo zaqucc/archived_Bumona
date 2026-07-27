@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h3>Test POST ke Apps Script</h3>
+  <button onclick="test()">Kirim POST Dummy</button>
+  <pre id="hasil"></pre>
+  <script>
+    async function test() {
+      const hasil = document.getElementById('hasil');
+      hasil.innerText = "Mengirim...";
+      const url = "https://script.google.com/macros/library/d/1BTBQMfoURtLpqr3G82oFlyaaC5sZLUbjx2BBXZAtqLeqTve0CE9W8Gxr/25";
+      const payload = {
+        id_order: "TEST-001",
+        nama_pelanggan: "Test",
+        email_pelanggan: "test@mail.com",
+        nomor_whatsapp: "08123456789",
+        item_belanja: "E-book",
+        total_bayar: 50000,
+        metode_pembayaran: "Bank BCA",
+        bukti_pembayaran: "dummy"
+      };
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const text = await response.text();
+        hasil.innerText = `STATUS: ${response.status}\nRESPON: ${text}`;
+      } catch (err) {
+        hasil.innerText = "FETCH ERROR: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
