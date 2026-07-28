@@ -1,30 +1,9 @@
 // ==========================================
 // cart.js – Manajemen Keranjang & Checkout
-// (Tanpa Upload Bukti, Data Rekening dari config.js)
 // ==========================================
 
-// --- Konversi Link Google Drive (sama seperti di api.js) ---
-function convertDriveLink(url) {
-    if (!url || typeof url !== 'string') return '';
-    let id = '';
-    let match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (match) id = match[1];
-    if (!id) {
-        match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-        if (match) id = match[1];
-    }
-    if (!id) {
-        match = url.match(/id=([a-zA-Z0-9_-]+)/);
-        if (match) id = match[1];
-    }
-    if (id) return `https://drive.usercontent.google.com/download?id=${id}&export=view`;
-    return url;
-}
+const REKENING = (typeof DATABASE_REKENING !== 'undefined') ? DATABASE_REKENING : {};
 
-// --- Data Rekening (dari config.js) ---
-const databaseRekening = DATABASE_REKENING;
-
-// --- Keranjang ---
 function ambilKeranjang() {
     return JSON.parse(localStorage.getItem('keranjang_bumona')) || [];
 }
@@ -40,7 +19,6 @@ function perbaruiBadgeKatalog() {
     if (badge) badge.innerText = total;
 }
 
-// --- Tambah ke Keranjang (dari katalog / detail) ---
 function tambahKeKeranjang(event, id, nama, hargaFinal, foto, kategori, hargaAsli = null, diskon = 0) {
     event.preventDefault();
     event.stopPropagation();
@@ -52,10 +30,10 @@ function tambahKeKeranjang(event, id, nama, hargaFinal, foto, kategori, hargaAsl
         keranjang.push({
             id_produk: id,
             nama: nama,
-            harga: hargaFinal,                     // harga setelah diskon
-            hargaAsli: hargaAsli || hargaFinal,    // harga sebelum diskon
-            diskon: diskon || 0,                   // persentase diskon
-            foto: convertDriveLink(foto),
+            harga: hargaFinal,
+            hargaAsli: hargaAsli || hargaFinal,
+            diskon: diskon || 0,
+            foto: foto,
             kategori: kategori,
             quantity: 1
         });
@@ -65,7 +43,6 @@ function tambahKeKeranjang(event, id, nama, hargaFinal, foto, kategori, hargaAsl
     tampilkanToast(`"${nama}" ditambahkan ke keranjang.`, 'success');
 }
 
-// --- Tampilkan Halaman Keranjang ---
 function muatHalamanKeranjang() {
     const keranjang = ambilKeranjang();
     const kontainer = document.getElementById('kontainer-keranjang');
@@ -143,7 +120,6 @@ function muatHalamanKeranjang() {
     }
 }
 
-// --- Ubah Kuantitas / Hapus Item ---
 function ubahQty(index, delta) {
     let keranjang = ambilKeranjang();
     keranjang[index].quantity = (keranjang[index].quantity || 1) + delta;
@@ -159,56 +135,191 @@ function hapusItem(index) {
     muatHalamanKeranjang();
 }
 
-// --- Metode Pembayaran ---
+// ============ POP-UP METODE PEMBAYARAN ============
 let kategoriBayarTerpilih = '';
+let metodeTerpilih = '';
 
-function pilihKategoriBayar(kategori) {
+function bukaPopupPembayaran() {
+    const nama = document.getElementById('nama_pelanggan').value.trim();
+    const email = document.getElementById('email_pelanggan').value.trim();
+    const wa = document.getElementById('nomor_whatsapp').value.trim();
+    
+    if (!nama || !email || !wa) {
+        tampilkanToast("Lengkapi data pelanggan terlebih dahulu.", "error");
+        return;
+    }
+
+    const popupHTML = `
+    <div id="popup-pembayaran-overlay" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-base font-extrabold text-slate-900">Pilih Metode Pembayaran</h3>
+                <button onclick="tutupPopupPembayaran()" class="w-8 h-8 flex items-center justify-center bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-lg">
+                    <span class="material-icons-round text-[18px]">close</span>
+                </button>
+            </div>
+
+            <div class="flex gap-2 mb-4">
+                <button onclick="pilihTabPopup('e-wallet')" id="tab-e-wallet" class="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold bg-orange-600 text-white">E-Wallet</button>
+                <button onclick="pilihTabPopup('transfer bank')" id="tab-transfer-bank" class="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-100 text-slate-600">Transfer Bank</button>
+            </div>
+
+            <div id="popup-daftar-metode" class="space-y-2 max-h-64 overflow-y-auto no-scrollbar">
+                ${renderDaftarMetode('e-wallet')}
+            </div>
+
+            <div class="mt-5 pt-4 border-t border-slate-100 flex gap-3">
+                <button onclick="tutupPopupPembayaran()" class="flex-1 py-3 rounded-xl text-sm font-bold text-slate-600 bg-slate-100">Batal</button>
+                <button onclick="konfirmasiPembayaran()" id="btn-konfirmasi-popup" class="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-orange-600 disabled:opacity-50" disabled>Pilih Metode</button>
+            </div>
+        </div>
+    </div>`;
+
+    document.body.insertAdjacentHTML('beforeend', popupHTML);
+    document.body.style.overflow = 'hidden';
+}
+
+function tutupPopupPembayaran() {
+    const popup = document.getElementById('popup-pembayaran-overlay');
+    if (popup) {
+        popup.remove();
+        document.body.style.overflow = '';
+    }
+}
+
+function pilihTabPopup(kategori) {
+    const tabEwallet = document.getElementById('tab-e-wallet');
+    const tabBank = document.getElementById('tab-transfer-bank');
+    const daftarMetode = document.getElementById('popup-daftar-metode');
+
+    if (kategori === 'e-wallet') {
+        tabEwallet.className = "flex-1 py-2.5 px-3 rounded-xl text-xs font-bold bg-orange-600 text-white";
+        tabBank.className = "flex-1 py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-100 text-slate-600";
+    } else {
+        tabBank.className = "flex-1 py-2.5 px-3 rounded-xl text-xs font-bold bg-orange-600 text-white";
+        tabEwallet.className = "flex-1 py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-100 text-slate-600";
+    }
+
+    daftarMetode.innerHTML = renderDaftarMetode(kategori);
+    metodeTerpilih = '';
+    document.getElementById('btn-konfirmasi-popup').disabled = true;
+    document.getElementById('btn-konfirmasi-popup').innerText = 'Pilih Metode';
+}
+
+function renderDaftarMetode(kategori) {
+    const list = kategori === 'e-wallet' 
+        ? ['Dana','Ovo','ShopeePay','Gopay','LinkAja'] 
+        : ['Bank BCA','Bank Mandiri','Bank BRI','Bank BSI'];
+
+    return list.map(metode => {
+        const rek = REKENING[metode];
+        const isAvailable = rek && rek.nomor && rek.nomor.trim() !== '';
+        const icon = kategori === 'e-wallet' ? 'account_balance_wallet' : 'account_balance';
+        
+        return `
+        <div onclick="${isAvailable ? `pilihMetodePopup('${metode}', '${kategori}')` : ''}" 
+             class="flex items-center gap-3 p-3 rounded-xl border ${isAvailable ? 'cursor-pointer hover:border-orange-300' : 'cursor-not-allowed opacity-60'} ${metodeTerpilih === metode ? 'border-orange-500 bg-orange-50' : 'border-slate-200'}">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-100">
+                <span class="material-icons-round text-[20px]">${icon}</span>
+            </div>
+            <div class="flex-1">
+                <p class="text-sm font-bold">${metode}</p>
+                <p class="text-[10px] text-slate-400">${isAvailable ? rek.nomor : 'Tidak tersedia'}</p>
+            </div>
+            ${isAvailable ? '<span class="material-icons-round text-slate-300">chevron_right</span>' : '<span class="text-[9px] text-red-400 bg-red-50 px-2 py-0.5 rounded">Nonaktif</span>'}
+        </div>`;
+    }).join('');
+}
+
+function pilihMetodePopup(metode, kategori) {
+    const rek = REKENING[metode];
+    if (!rek || !rek.nomor || rek.nomor.trim() === '') return;
+    
+    metodeTerpilih = metode;
     kategoriBayarTerpilih = kategori;
-    const opsi = document.getElementById('opsi-spesifik-bayar');
+    
+    document.querySelectorAll('#popup-daftar-metode > div').forEach(el => {
+        el.classList.remove('border-orange-500', 'bg-orange-50');
+    });
+    
+    const items = document.querySelectorAll('#popup-daftar-metode > div');
+    items.forEach(el => {
+        const onclickAttr = el.getAttribute('onclick') || '';
+        if (onclickAttr.includes(`'${metode}'`)) {
+            el.classList.add('border-orange-500', 'bg-orange-50');
+        }
+    });
+    
+    const btnKonfirmasi = document.getElementById('btn-konfirmasi-popup');
+    btnKonfirmasi.disabled = false;
+    btnKonfirmasi.innerText = `Bayar via ${metode}`;
+}
+
+function konfirmasiPembayaran() {
+    if (!metodeTerpilih) return;
+    
     const select = document.getElementById('pilihan_metode');
-    opsi.classList.remove('hidden');
-    select.innerHTML = '';
-    const list = kategori === 'e-wallet' ? ['Dana','Ovo','ShopeePay','Gopay','LinkAja'] : ['Bank BCA','Bank Mandiri','Bank BRI','Bank BNI'];
-    list.forEach(o => select.innerHTML += `<option value="${o}">${o}</option>`);
+    // Buat option sesuai metode yang dipilih
+    select.innerHTML = `<option value="${metodeTerpilih}" selected>${metodeTerpilih}</option>`;
+    
+    document.getElementById('opsi-spesifik-bayar').classList.remove('hidden');
     perbaruiInfoRekening();
+    tutupPopupPembayaran();
+    tampilkanToast(`Metode ${metodeTerpilih} dipilih.`, 'success');
 }
 
 function perbaruiInfoRekening() {
     const metode = document.getElementById('pilihan_metode').value;
-    if (databaseRekening[metode]) {
-        document.getElementById('txt-nomor-rekening').innerText = databaseRekening[metode].nomor;
-        document.getElementById('txt-atas-nama').innerText = databaseRekening[metode].nama;
+    const rek = REKENING[metode];
+    if (rek) {
+        document.getElementById('txt-nomor-rekening').innerText = rek.nomor;
+        document.getElementById('txt-atas-nama').innerText = rek.nama;
+        document.getElementById('txt-label-metode').innerText = metode;
     }
 }
 
 function salinNomorRekening() {
     const nomor = document.getElementById('txt-nomor-rekening').innerText;
+    if (!nomor || nomor.trim() === '') {
+        tampilkanToast("Nomor tidak tersedia.", "error");
+        return;
+    }
     navigator.clipboard.writeText(nomor).then(() => {
-        tampilkanToast("Nomor rekening disalin!", "success");
-        document.getElementById('icon-copy').innerText = "check";
-        setTimeout(() => { document.getElementById('icon-copy').innerText = "content_copy"; }, 2000);
+        tampilkanToast("Nomor disalin!", "success");
     });
 }
 
+// ============ PROSES TRANSAKSI ============
 async function prosesTransaksi() {
     const nama = document.getElementById('nama_pelanggan').value.trim();
     const email = document.getElementById('email_pelanggan').value.trim();
     const wa = document.getElementById('nomor_whatsapp').value.trim();
     const metode = document.getElementById('pilihan_metode').value;
 
-    // Validasi
+    // Validasi form
     if (!nama || !email || !wa) { tampilkanToast("Lengkapi data pelanggan.", "error"); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { tampilkanToast("Format email tidak valid.", "error"); return; }
     if (!/^[0-9]{10,14}$/.test(wa.replace(/\D/g, ''))) { tampilkanToast("Nomor WA hanya angka 10-14 digit.", "error"); return; }
-    if (!kategoriBayarTerpilih) { tampilkanToast("Pilih kategori pembayaran.", "error"); return; }
+    if (!kategoriBayarTerpilih || !metode) {
+        bukaPopupPembayaran();
+        return;
+    }
 
-    // === CEGAH KLIK GANDA & TAMPILKAN POPUP LOADING ===
+    const rekening = REKENING[metode];
+    if (!rekening || !rekening.nomor || rekening.nomor.trim() === '') {
+        tampilkanModal("Metode Tidak Tersedia", `Maaf, ${metode} belum tersedia. Silakan pilih metode lain.`, "info", () => bukaPopupPembayaran());
+        return;
+    }
+
     const btn = document.querySelector('#footer-checkout button');
+    // Jika tombol sudah disabled, hentikan (cegah klik ganda)
     if (!btn || btn.disabled) return;
-    btn.disabled = true;
 
-    // Tampilkan popup loading
-    tampilkanModal("Memproses", "Transaksi Anda sedang dikirim. Mohon tunggu sebentar...", "process");
+    // Tampilkan popup loading SEBELUM menonaktifkan tombol
+    tampilkanModal("Memproses", "Mengirim transaksi Anda...", "process");
+
+    // Nonaktifkan tombol
+    btn.disabled = true;
 
     const keranjang = ambilKeranjang();
     const payload = {
@@ -223,8 +334,8 @@ async function prosesTransaksi() {
 
     try {
         await kirimTransaksi(payload);
-        // Tutup popup loading
-        document.getElementById('custom-modal').classList.add('opacity-0', 'pointer-events-none');
+
+        // Simpan checkout & kosongkan keranjang
         localStorage.setItem('checkout_terakhir', JSON.stringify({
             id_invoice: payload.id_order,
             tanggal: new Date().toLocaleString(),
@@ -232,12 +343,22 @@ async function prosesTransaksi() {
             items: keranjang
         }));
         simpanKeranjang([]);
+
+        // Tutup popup loading
+        const modal = document.getElementById('custom-modal');
+        if (modal) modal.classList.add('opacity-0', 'pointer-events-none');
+
+        // Tampilkan popup sukses
         tampilkanModal("Pembayaran Terkirim", "Pesanan Anda berhasil dicatat.", "success", () => {
             window.location.href = 'sukses.html';
         });
+
     } catch (err) {
         // Tutup popup loading
-        document.getElementById('custom-modal').classList.add('opacity-0', 'pointer-events-none');
+        const modal = document.getElementById('custom-modal');
+        if (modal) modal.classList.add('opacity-0', 'pointer-events-none');
+
+        // Aktifkan kembali tombol
         btn.disabled = false;
         tampilkanToast("Gagal: " + err.message, "error");
     }

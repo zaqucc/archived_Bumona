@@ -18,8 +18,8 @@ const DATABASE_REKENING = {
     'Dana':         { nomor: '089618527700', nama: 'Mona Luki' },
     'Ovo':          { nomor: '089618527700', nama: 'Mona Luki' },
     'ShopeePay':    { nomor: '089618527700', nama: 'Mona Luki' },
-    'Gopay':        { nomor: '#', nama: 'Mona Luki' },
-    'LinkAja':      { nomor: '#', nama: 'Mona Luki' },
+    'Gopay':        { nomor: '', nama: 'Mona Luki' },        // ← kosongkan
+    'LinkAja':      { nomor: '', nama: 'Mona Luki' },        // ← kosongkan
     'Bank BCA':     { nomor: '4180618878',  nama: 'Mona Luki' },
     'Bank Mandiri': { nomor: '1310020452159', nama: 'Mona Luki' },
     'Bank BRI':     { nomor: '431801014146532', nama: 'Mona Luki' },
