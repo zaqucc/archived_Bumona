@@ -1,35 +1,44 @@
 <!DOCTYPE html>
 <html>
 <body>
-  <h3>Test POST ke Apps Script</h3>
-  <button onclick="test()">Kirim POST Dummy</button>
+  <h3>Test POST File Asli</h3>
+  <input type="file" id="fileInput" accept="image/*">
+  <button onclick="test()">Kirim POST</button>
   <pre id="hasil"></pre>
   <script>
     async function test() {
       const hasil = document.getElementById('hasil');
-      hasil.innerText = "Mengirim...";
-      const url = "https://script.google.com/macros/s/AKfycbzxWGehzvfyEeS7h5bf8e4eMyH8XuFwlKkNU4dcyICsBru9ELWLQpjjFjuRlAdaBuCpXQ/exec";
-      const payload = {
-        id_order: "TEST-001",
-        nama_pelanggan: "Test",
-        email_pelanggan: "test@mail.com",
-        nomor_whatsapp: "08123456789",
-        item_belanja: "E-book",
-        total_bayar: 50000,
-        metode_pembayaran: "Bank BCA",
-        bukti_pembayaran: "dummy"
+      const file = document.getElementById('fileInput').files[0];
+      if (!file) { hasil.innerText = "Pilih file dulu."; return; }
+      hasil.innerText = "Membaca file...";
+      
+      const reader = new FileReader();
+      reader.onload = async function() {
+        const base64 = reader.result;
+        const payload = {
+          id_order: "TEST-ASLI",
+          nama_pelanggan: "Test",
+          email_pelanggan: "test@mail.com",
+          nomor_whatsapp: "08123456789",
+          item_belanja: "Test",
+          total_bayar: 10000,
+          metode_pembayaran: "Bank BCA",
+          bukti_pembayaran: base64
+        };
+        
+        try {
+          const response = await fetch("https://script.google.com/macros/s/.../exec", { // GANTI URL ANDA
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const text = await response.text();
+          hasil.innerText = `STATUS: ${response.status}\nRESPON: ${text}`;
+        } catch (err) {
+          hasil.innerText = "FETCH ERROR: " + err.message;
+        }
       };
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const text = await response.text();
-        hasil.innerText = `STATUS: ${response.status}\nRESPON: ${text}`;
-      } catch (err) {
-        hasil.innerText = "FETCH ERROR: " + err.message;
-      }
+      reader.readAsDataURL(file);
     }
   </script>
 </body>

@@ -22,7 +22,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen pb-40 relative">
 
-    <!-- ========== HEADER (Hanya judul di kiri atas) ========== -->
+    <!-- ========== HEADER ========== -->
     <header class="bg-white/90 backdrop-blur-md px-4 py-3 border-b border-slate-100 sticky top-0 z-40">
         <div class="max-w-7xl mx-auto">
             <h1 class="text-base font-bold text-slate-900 tracking-tight">Keranjang Belanja</h1>
@@ -103,137 +103,6 @@
                             </div>
                         </div>
                         <div class="absolute -right-8 -bottom-8 w-24 h-24 bg-orange-300/15 rounded-full pointer-events-none"></div>
-                    </div>
-                </div>
-
-                <!-- Upload Bukti (Full Width) -->
-                <div class="full-width pt-1 relative z-10">
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Upload Bukti Pembayaran <span class="text-red-500 font-bold">*Wajib</span></label>
-                    <div class="flex items-center gap-3 bg-white p-3 border border-orange-200/60 rounded-xl shadow-3xs">
-                        <input type="file" id="input_bukti_bayar" accept="image/*" class="text-xs text-slate-500 w-full file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-orange-600 file:text-white hover:file:bg-orange-700 cursor-pointer transition-colors">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- ========== FOOTER CHECKOUT (FLOATING) ========== -->
-    <footer id="footer-checkout" class="bg-white/90 backdrop-blur-md border-t border-slate-100 fixed bottom-0 left-0 right-0 py-4 px-4 z-40 hidden">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <div>
-                <span class="block text-[11px] font-semibold text-slate-400 <!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keranjang Belanja - Archived bumona</title>
-
-    <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
-    <!-- Icon Libraries -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
-    <!-- Google Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="assets/css/style.css">
-</head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen pb-40 relative">
-
-    <!-- ========== HEADER (Hanya judul di kiri atas) ========== -->
-    <header class="bg-white/90 backdrop-blur-md px-4 py-3 border-b border-slate-100 sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto">
-            <h1 class="text-base font-bold text-slate-900 tracking-tight">Keranjang Belanja</h1>
-        </div>
-    </header>
-
-    <!-- ========== MAIN CONTENT ========== -->
-    <main class="max-w-7xl mx-auto px-4 mt-6">
-
-        <!-- Daftar Item Keranjang -->
-        <div id="kontainer-keranjang" class="space-y-4"></div>
-
-        <!-- Keranjang Kosong -->
-        <div id="keranjang-kosong" class="text-center py-20 hidden">
-            <span class="material-icons-round text-slate-300 text-6xl mb-3">shopping_bag</span>
-            <p class="text-slate-500 font-medium text-sm">Keranjang belanja Anda masih kosong</p>
-            <a href="index.html" class="inline-block mt-4 bg-orange-600 text-white text-xs font-bold px-6 py-3 rounded-xl shadow-sm hover:bg-orange-700 transition-colors">Lihat Katalog Produk</a>
-        </div>
-
-        <!-- Formulir Checkout -->
-        <div id="form-transaksi" class="mt-8 bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hidden">
-            <h2 class="text-sm font-bold text-slate-900 tracking-wide uppercase mb-4">Detail Pelanggan & Pembayaran</h2>
-
-            <div class="form-checkout">
-                <!-- Kolom Kiri: Data Pelanggan -->
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 mb-1">Nama Lengkap</label>
-                        <input type="text" id="nama_pelanggan" placeholder="Masukkan nama Anda" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 focus:bg-white transition-all">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 mb-1">Email Aktif</label>
-                        <input type="email" id="email_pelanggan" placeholder="contoh@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 focus:bg-white transition-all">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 mb-1">Nomor WhatsApp</label>
-                        <input type="text" id="nomor_whatsapp" placeholder="Contoh: 0812345678" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 focus:bg-white transition-all">
-                    </div>
-                </div>
-
-                <!-- Kolom Kanan: Metode Pembayaran -->
-                <div class="space-y-3">
-                    <label class="block text-xs font-semibold text-slate-500 mb-1">Metode Pembayaran</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button type="button" onclick="pilihKategoriBayar('e-wallet')" id="btn-e-wallet" class="border border-slate-200 rounded-xl p-4 text-center transition-all cursor-pointer bg-slate-50 text-slate-700 hover:bg-orange-50/50 hover:border-orange-200 flex flex-col items-center justify-center min-h-[76px]">
-                            <span class="block text-sm font-bold">E-Wallet</span>
-                            <span class="text-[10px] text-slate-400 font-medium block mt-0.5">Dana, Ovo, ShopeePay</span>
-                        </button>
-                        <button type="button" onclick="pilihKategoriBayar('transfer bank')" id="btn-transfer-bank" class="border border-slate-200 rounded-xl p-4 text-center transition-all cursor-pointer bg-slate-50 text-slate-700 hover:bg-orange-50/50 hover:border-orange-200 flex flex-col items-center justify-center min-h-[76px]">
-                            <span class="block text-sm font-bold">Transfer Bank</span>
-                            <span class="text-[10px] text-slate-400 font-medium block mt-0.5">BCA, Mandiri, BRI</span>
-                        </button>
-                    </div>
-
-                    <div id="opsi-spesifik-bayar" class="hidden bg-gradient-to-br from-orange-50 to-amber-50/60 border border-orange-100/80 rounded-2xl p-4.5 relative overflow-hidden shadow-xs space-y-4">
-                        <div class="relative z-10">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Pilih Opsi Pembayaran</label>
-                            <select id="pilihan_metode" onchange="perbaruiInfoRekening()" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-700 focus:outline-none focus:border-orange-500 transition-all shadow-3xs"></select>
-                        </div>
-                        <div id="box-rekening" class="bg-white border border-orange-200/60 p-4 rounded-xl shadow-3xs space-y-3 relative z-10">
-                            <div class="flex justify-between items-center">
-                                <span id="txt-label-metode" class="text-[8.5px] font-extrabold tracking-widest uppercase text-orange-700 bg-orange-100/80 px-1.5 py-0.5 rounded shadow-3xs">Metode</span>
-                                <div class="flex items-center gap-1 text-[9.5px] font-bold text-slate-400">
-                                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Data Terverifikasi
-                                </div>
-                            </div>
-                            <div class="space-y-0.5">
-                                <p class="text-[10px] text-slate-500 font-semibold tracking-wide">Nomor Rekening / E-Wallet:</p>
-                                <div class="flex items-center justify-between bg-slate-50 border border-slate-100 p-2.5 rounded-xl mt-1">
-                                    <span id="txt-nomor-rekening" class="text-sm font-extrabold tracking-wider text-slate-900 select-all">00000000</span>
-                                    <button type="button" onclick="salinNomorRekening()" class="w-7 h-7 bg-white border border-slate-200 rounded-lg flex items-center justify-center transition-all cursor-pointer shadow-3xs text-slate-500 hover:text-orange-600">
-                                        <span id="icon-copy" class="material-icons-round text-[15px]">content_copy</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="pt-2 flex justify-between text-[11px] font-medium text-slate-600 border-t border-slate-100">
-                                <p>Atas Nama: <span id="txt-atas-nama" class="font-bold text-slate-900">Luki Bumona</span></p>
-                            </div>
-                        </div>
-                        <div class="absolute -right-8 -bottom-8 w-24 h-24 bg-orange-300/15 rounded-full pointer-events-none"></div>
-                    </div>
-                </div>
-
-                <!-- Upload Bukti (Full Width) -->
-                <div class="full-width pt-1 relative z-10">
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Upload Bukti Pembayaran <span class="text-red-500 font-bold">*Wajib</span></label>
-                    <div class="flex items-center gap-3 bg-white p-3 border border-orange-200/60 rounded-xl shadow-3xs">
-                        <input type="file" id="input_bukti_bayar" accept="image/*" class="text-xs text-slate-500 w-full file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-orange-600 file:text-white hover:file:bg-orange-700 cursor-pointer transition-colors">
                     </div>
                 </div>
             </div>

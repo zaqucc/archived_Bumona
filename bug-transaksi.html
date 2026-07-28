@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Transaksi</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e293b; color: #e2e8f0; }
+        .log { background: #0f172a; padding: 15px; border-radius: 8px; margin: 10px 0; white-space: pre-wrap; word-break: break-all; }
+        button { padding: 10px 20px; background: #f97316; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        input { padding: 8px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #e2e8f0; margin: 5px 0; }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+        .info { color: #60a5fa; }
+    </style>
+</head>
+<body>
+    <h2>🔧 Debug Transaksi Step-by-Step</h2>
+
+    <div>
+        <label>URL API Transaksi:</label><br>
+        <input type="text" id="apiUrl" value="https://script.google.com/macros/s/AKfycby2opMHL7eCD1xqpaTv_GztKVXRlyVQjgxkZcRqzd4uzaKXtImwPM0QDjWsx4Gol4NPsg/exec" style="width: 100%;">
+    </div>
+
+    <div style="margin: 15px 0;">
+        <label>Pilih file gambar (screenshot bukti transfer):</label><br>
+        <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <button onclick="debugStepByStep()">🚀 Mulai Debug</button>
+
+    <div id="logArea" class="log" style="margin-top: 20px;">
+        Log akan muncul di sini...
+    </div>
+
+    <script>
+        const API_TRANSAKSI = document.getElementById('apiUrl').value;
+
+        function log(pesan, tipe = 'info') {
+            const logArea = document.getElementById('logArea');
+            const warna = tipe === 'success' ? 'color:#4ade80;' : tipe === 'error' ? 'color:#f87171;' : 'color:#60a5fa;';
+            logArea.innerHTML += `<span style="${warna}">[${new Date().toLocaleTimeString()}]</span> ${pesan}\n`;
+        }
+
+        async function debugStepByStep() {
+            document.getElementById('logArea').innerHTML = '';
+            const file = document.getElementById('fileInput').files[0];
+            const apiUrl = document.getElementById('apiUrl').value;
+
+            if (!file) {
+                log('❌ Tidak ada file yang dipilih!', 'error');
+                return;
+            }
+
+            log(`📁 File dipilih: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
+
+            // Step 1: Kompresi gambar
+            log('🔄 Step 1: Kompresi gambar...');
+            let base64;
+            try {
+                base64 = await kompresGambarDebug(file);
+                log(`✅ Kompresi berhasil! Panjang base64: ${base64.length} karakter (~${(base64.length / 1024).toFixed(1)} KB)`, 'success');
+            } catch (err) {
+                log(`❌ Kompresi gagal: ${err.message}`, 'error');
+                return;
+            }
+
+            // Step 2: Buat payload dummy
+            const payload = {
+                id_order: "DEBUG-" + Date.now(),
+                nama_pelanggan: "Debug Test",
+                email_pelanggan: "debug@test.com",
+                nomor_whatsapp: "08123456789",
+                item_belanja: "Test Item",
+                total_bayar: 10000,
+                metode_pembayaran: "Bank BCA",
+                bukti_pembayaran: base64
+            };
+            log('📦 Payload dibuat (tanpa bukti_pembayaran): ' + JSON.stringify({...payload, bukti_pembayaran: '[BASE64_DATA]'}));
+
+            // Step 3: Uji GET request
+            log('🔄 Step 2: Uji GET request...');
+            const params = new URLSearchParams({
+                simpan_transaksi: "true",
+                id_order: payload.id_order,
+                nama_pelanggan: payload.nama_pelanggan,
+                email_pelanggan: payload.email_pelanggan,
+                nomor_whatsapp: payload.nomor_whatsapp,
+                item_belanja: payload.item_belanja,
+                total_bayar: payload.total_bayar,
+                metode_pembayaran: payload.metode_pembayaran,
+                bukti_pembayaran: payload.bukti_pembayaran
+            }).toString();
+
+            const getUrl = `${apiUrl}?${params}`;
+            log(`URL GET (dipotong): ${getUrl.substring(0, 200)}...`);
+            log(`Total panjang URL: ${getUrl.length} karakter`);
+
+            try {
+                const response = await fetch(getUrl);
+                const text = await response.text();
+                log(`✅ GET Response: STATUS=${response.status}`, 'success');
+                log(`📄 Body: ${text}`);
+            } catch (err) {
+                log(`❌ GET Error: ${err.message}`, 'error');
+            }
+
+            // Step 4: Uji POST request (sebagai perbandingan)
+            log('🔄 Step 3: Uji POST request...');
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const text = await response.text();
+                log(`✅ POST Response: STATUS=${response.status}`, 'success');
+                log(`📄 Body: ${text}`);
+            } catch (err) {
+                log(`❌ POST Error: ${err.message}`, 'error');
+            }
+        }
+
+        function kompresGambarDebug(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const maxWidth = 200;
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.3);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</body>
+</html>
