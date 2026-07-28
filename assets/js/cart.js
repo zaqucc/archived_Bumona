@@ -1,3 +1,27 @@
+// ==========================================
+// cart.js – Manajemen Keranjang & Checkout
+// ==========================================
+
+// Konversi link Google Drive → usercontent
+function convertDriveLink(url) {
+    if (!url || typeof url !== 'string') return '';
+    let id = '';
+    let match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) id = match[1];
+    if (!id) {
+        match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+        if (match) id = match[1];
+    }
+    if (!id) {
+        match = url.match(/id=([a-zA-Z0-9_-]+)/);
+        if (match) id = match[1];
+    }
+    if (id) {
+        return `https://drive.usercontent.google.com/download?id=${id}&export=view`;
+    }
+    return url;
+}
+
 function ambilKeranjang() {
     return JSON.parse(localStorage.getItem('keranjang_bumona')) || [];
 }
@@ -13,7 +37,18 @@ function perbaruiBadgeKatalog() {
     if (badge) badge.innerText = total;
 }
 
-function tambahKeKeranjang(event, id, nama, harga, foto, kategori) {
+/**
+ * Tambah produk ke keranjang.
+ * @param {Event} event
+ * @param {string} id - ID produk
+ * @param {string} nama
+ * @param {number} hargaFinal - Harga setelah diskon
+ * @param {string} foto - URL gambar utama
+ * @param {string} kategori
+ * @param {number} [hargaAsli] - Harga sebelum diskon (opsional, default = hargaFinal)
+ * @param {number} [diskon] - Persentase diskon (opsional, default 0)
+ */
+function tambahKeKeranjang(event, id, nama, hargaFinal, foto, kategori, hargaAsli = null, diskon = 0) {
     event.preventDefault();
     event.stopPropagation();
     let keranjang = ambilKeranjang();
@@ -21,7 +56,16 @@ function tambahKeKeranjang(event, id, nama, harga, foto, kategori) {
     if (index > -1) {
         keranjang[index].quantity = (keranjang[index].quantity || 1) + 1;
     } else {
-        keranjang.push({ id_produk: id, nama, harga, foto, kategori, quantity: 1 });
+        keranjang.push({
+            id_produk: id,
+            nama: nama,
+            harga: hargaFinal,                     // harga yang ditampilkan & dihitung
+            hargaAsli: hargaAsli || hargaFinal,    // harga sebelum diskon
+            diskon: diskon || 0,                   // persen diskon
+            foto: convertDriveLink(foto),
+            kategori: kategori,
+            quantity: 1
+        });
     }
     simpanKeranjang(keranjang);
     perbaruiBadgeKatalog();
@@ -45,21 +89,35 @@ function muatHalamanKeranjang() {
     form.classList.remove('hidden');
     footer.classList.remove('hidden');
     let html = '';
-    let total = 0;
+    let totalHargaAsli = 0;
+    let totalHargaFinal = 0;
+
     keranjang.forEach((item, index) => {
-        const subtotal = item.harga * (item.quantity || 1);
-        total += subtotal;
+        const qty = item.quantity || 1;
+        const hargaAsliSatuan = item.hargaAsli || item.harga;
+        const hargaFinalSatuan = item.harga; // sudah harga setelah diskon
+        const subTotalAsli = hargaAsliSatuan * qty;
+        const subTotalFinal = hargaFinalSatuan * qty;
+        totalHargaAsli += subTotalAsli;
+        totalHargaFinal += subTotalFinal;
+        const gambar = convertDriveLink(item.foto) || 'https://placehold.co/100x100?text=Digital';
+
         html += `
         <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex gap-4 items-center">
-            <img src="${item.foto || 'https://placehold.co/100x100?text=Digital'}" class="w-16 h-16 rounded-xl object-cover bg-slate-50 flex-shrink-0">
+            <img src="${gambar}" alt="${item.nama}" onerror="this.onerror=null;this.src='https://placehold.co/100x100?text=Digital';" class="w-16 h-16 rounded-xl object-cover bg-slate-50 flex-shrink-0">
             <div class="flex-1 min-w-0">
                 <h3 class="text-sm font-bold text-slate-900 truncate">${item.nama}</h3>
                 <p class="text-xs font-semibold text-slate-400 mt-0.5">${item.kategori}</p>
                 <div class="flex items-center justify-between mt-2">
-                    <span class="text-sm font-extrabold text-slate-900">${formatRupiah(item.harga)}</span>
+                    <div>
+                        ${hargaAsliSatuan > hargaFinalSatuan ? `
+                            <span class="text-xs text-slate-400 line-through mr-1">${formatRupiah(hargaAsliSatuan)}</span>
+                        ` : ''}
+                        <span class="text-sm font-extrabold text-slate-900">${formatRupiah(hargaFinalSatuan)}</span>
+                    </div>
                     <div class="flex items-center gap-2 bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg">
                         <button onclick="ubahQty(${index}, -1)" class="material-icons-round text-xs text-slate-500 hover:text-slate-800 cursor-pointer">remove</button>
-                        <span class="text-xs font-bold text-slate-800 px-1">${item.quantity}</span>
+                        <span class="text-xs font-bold text-slate-800 px-1">${qty}</span>
                         <button onclick="ubahQty(${index}, 1)" class="material-icons-round text-xs text-slate-500 hover:text-slate-800 cursor-pointer">add</button>
                     </div>
                 </div>
@@ -69,8 +127,30 @@ function muatHalamanKeranjang() {
             </button>
         </div>`;
     });
+
     kontainer.innerHTML = html;
-    document.getElementById('total-tagihan').innerText = formatRupiah(total);
+
+    const totalDiskon = totalHargaAsli - totalHargaFinal;
+    // Update footer checkout dengan informasi diskon
+    const footerContent = document.getElementById('footer-checkout');
+    if (footerContent) {
+        footerContent.innerHTML = `
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <div class="flex flex-col gap-1">
+                <span class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Pembayaran</span>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-lg font-extrabold text-orange-600">${formatRupiah(totalHargaFinal)}</span>
+                    ${totalDiskon > 0 ? `
+                        <span class="text-xs text-slate-400 line-through">${formatRupiah(totalHargaAsli)}</span>
+                        <span class="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-lg">Hemat ${formatRupiah(totalDiskon)}</span>
+                    ` : ''}
+                </div>
+            </div>
+            <button onclick="prosesTransaksi()" class="bg-orange-600 text-white font-bold text-sm px-8 py-3.5 rounded-xl shadow-sm hover:bg-orange-700 transition-all active:scale-[0.98] cursor-pointer w-full sm:w-auto">
+                Verifikasi & Bayar
+            </button>
+        </div>`;
+    }
 }
 
 function ubahQty(index, delta) {
@@ -88,6 +168,7 @@ function hapusItem(index) {
     muatHalamanKeranjang();
 }
 
+// Rekening (dummy)
 const databaseRekening = {
     'Dana': { nomor: '0895-1234-5678', nama: 'Luki Bumona' },
     'Ovo': { nomor: '0895-1234-5678', nama: 'Luki Bumona' },
@@ -101,6 +182,7 @@ const databaseRekening = {
 };
 
 let kategoriBayarTerpilih = '';
+
 function pilihKategoriBayar(kategori) {
     kategoriBayarTerpilih = kategori;
     const opsi = document.getElementById('opsi-spesifik-bayar');

@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof muatKatalog === 'function') muatKatalog();
     }
 
-    // VIEW PRODUK
+    // VIEW PRODUK (dengan diskon & multi-media)
     if (path.includes('view.html')) {
         async function muatSpesifikasiProduk() {
             const idTarget = new URLSearchParams(window.location.search).get('id');
@@ -118,6 +118,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 if (!produk) throw new Error("Tidak ditemukan");
 
+                const mediaSlots = [];
+                for (let i = 1; i <= 5; i++) {
+                    const key = `foto_${i}`;
+                    const url = produk[key] || produk[`foto ${i}`] || '';
+                    if (url && url.trim() !== '') {
+                        mediaSlots.push({ type: 'image', url: url.trim() });
+                    }
+                }
+                const videoUrl = produk["video preview"] || produk["video"] || '';
+                if (videoUrl && videoUrl.trim() !== '') {
+                    const patterns = [
+                        /(?:youtu\.be\/|v\/|embed\/|watch\?v=|&v=)([^#\&\?]{11})/,
+                        /^[a-zA-Z0-9_-]{11}$/
+                    ];
+                    let videoId = null;
+                    for (const pat of patterns) {
+                        const match = videoUrl.match(pat);
+                        if (match) {
+                            videoId = match[1] || match[0];
+                            break;
+                        }
+                    }
+                    if (videoId) {
+                        mediaSlots.push({
+                            type: 'video',
+                            embedUrl: `https://www.youtube.com/embed/${videoId}`,
+                            thumbUrl: `https://img.youtube.com/vi/${videoId}/0.jpg`
+                        });
+                    }
+                }
+                if (mediaSlots.length === 0) {
+                    mediaSlots.push({ type: 'image', url: 'https://placehold.co/600x400?text=No+Media' });
+                }
+
                 window.detailProdukView = {
                     id: produk["id produk"] || produk["id_produk"] || produk["id"],
                     nama: produk["nama produk"] || produk["nama_produk"] || "Tanpa Nama",
@@ -126,21 +160,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     harga: Number(produk["harga"]) || 0,
                     diskon: Number(produk["diskon"]) || 0,
                     hargaFinal: (Number(produk["harga"]) || 0) * (1 - (Number(produk["diskon"]) || 0) / 100),
-                    fotoUtama: produk["foto 1"] || produk["foto_1"] || "https://placehold.co/300x300?text=No+Image",
-                    foto: []
+                    fotoUtama: mediaSlots[0].type === 'image' ? mediaSlots[0].url : mediaSlots[0].thumbUrl,
+                    foto: mediaSlots.filter(m => m.type === 'image').map(m => m.url)
                 };
-                for (let i = 1; i <= 5; i++) {
-                    const key = `foto_${i}`;
-                    if (produk[key]) window.detailProdukView.foto.push(produk[key]);
-                }
-                if (window.detailProdukView.foto.length === 0) {
-                    window.detailProdukView.foto.push(window.detailProdukView.fotoUtama);
-                }
-                if (produk["video preview"] || produk["video"]) {
-                    const videoUrl = produk["video preview"] || produk["video"];
-                    const match = videoUrl.match(/(?:youtu\.be\/|v\/|embed\/|watch\?v=)([^#\&\?]{11})/);
-                    if (match) window.detailProdukView.video = `https://www.youtube.com/embed/${match[1]}`;
-                }
 
                 document.getElementById('prod-nama').innerText = window.detailProdukView.nama;
                 document.getElementById('prod-kategori').innerText = window.detailProdukView.kategori.toUpperCase();
@@ -156,31 +178,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 const track = document.getElementById('media-carousel-track');
                 const thumbTrack = document.getElementById('thumbnail-track');
                 track.innerHTML = ''; thumbTrack.innerHTML = '';
-                const mediaSlots = window.detailProdukView.foto.map(f => ({ type: 'image', url: f }));
-                if (window.detailProdukView.video) {
-                    mediaSlots.push({
-                        type: 'video',
-                        embedUrl: window.detailProdukView.video,
-                        thumbUrl: `https://img.youtube.com/vi/${window.detailProdukView.video.split('/').pop()}/0.jpg`
-                    });
-                }
+
                 mediaSlots.forEach((media, idx) => {
                     const slide = document.createElement('div');
                     slide.id = `slide-item-${idx}`;
                     slide.className = "w-full shrink-0 snap-start flex items-center justify-center min-h-[240px]";
                     if (media.type === 'image') {
-                        slide.innerHTML = `<img src="${media.url}" class="w-full h-auto block select-none">`;
+                        slide.innerHTML = `<img src="${media.url}" class="w-full h-auto block select-none" onerror="this.onerror=null;this.src='https://placehold.co/300x300?text=No+Image';">`;
                     } else {
                         slide.innerHTML = `<div class="w-full aspect-video bg-black flex items-center justify-center"><iframe class="w-full h-full border-0" src="${media.embedUrl}?mute=1" allowfullscreen></iframe></div>`;
                     }
                     track.appendChild(slide);
+
                     const thumb = document.createElement('button');
                     thumb.className = "thumb-item-box w-11 h-11 rounded-lg border border-slate-200 overflow-hidden bg-slate-100 relative shrink-0 transition-all cursor-pointer";
-                    thumb.innerHTML = `<img src="${media.type === 'image' ? media.url : media.thumbUrl}" class="w-full h-full object-cover">${media.type === 'video' ? '<div class="absolute inset-0 bg-black/40 flex items-center justify-center text-white"><span class="material-icons-round text-[16px]">play_circle</span></div>' : ''}`;
+                    const thumbSrc = media.type === 'image' ? media.url : media.thumbUrl;
+                    thumb.innerHTML = `<img src="${thumbSrc}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/50x50?text=No+Image';">${media.type === 'video' ? '<div class="absolute inset-0 bg-black/40 flex items-center justify-center text-white"><span class="material-icons-round text-[16px]">play_circle</span></div>' : ''}`;
                     thumb.onclick = () => document.getElementById(`slide-item-${idx}`).scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
                     thumbTrack.appendChild(thumb);
                 });
-                document.getElementById('carousel-indicator-badge').innerText = `1 / ${mediaSlots.length}`;
+
+                const updateIndicator = () => {
+                    const scrollLeft = track.scrollLeft;
+                    const slideWidth = track.clientWidth;
+                    const current = Math.round(scrollLeft / slideWidth);
+                    document.getElementById('carousel-indicator-badge').innerText = `${current + 1} / ${mediaSlots.length}`;
+                    document.querySelectorAll('.thumb-item-box').forEach((box, i) => {
+                        box.classList.toggle('border-orange-600', i === current);
+                        box.classList.toggle('border-slate-200', i !== current);
+                        box.classList.toggle('ring-2', i === current);
+                        box.classList.toggle('ring-orange-100', i === current);
+                    });
+                };
+                track.addEventListener('scroll', updateIndicator);
+                updateIndicator();
+
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('konten-produk').classList.remove('hidden');
                 perbaruiBadgeKatalog();
@@ -204,6 +236,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     id_produk: p.id,
                     nama: p.nama,
                     harga: p.hargaFinal,
+                    hargaAsli: p.harga,     // ✅ HARGA ASLI
+                    diskon: p.diskon,       // ✅ PERSEN DISKON
                     foto: p.fotoUtama,
                     kategori: p.kategori,
                     quantity: 1
@@ -226,12 +260,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (path.includes('admin.html')) {
         window.verifikasiLoginAdmin = function() {
             const pass = document.getElementById('pass-admin').value;
+            const btn = document.querySelector('#login-modal button');
+            if (btn) {
+                btn.classList.add('animasi-klik');
+                setTimeout(() => btn.classList.remove('animasi-klik'), 300);
+            }
             if (pass === ADMIN_PASSWORD) {
-                document.getElementById('login-modal').classList.add('hidden');
-                document.getElementById('admin-dashboard-layout').classList.remove('hidden');
-                if (typeof muatDataAdmin === 'function') muatDataAdmin();
+                setTimeout(() => {
+                    document.getElementById('login-modal').classList.add('hidden');
+                    document.getElementById('admin-dashboard-layout').classList.remove('hidden');
+                    if (typeof muatDataAdmin === 'function') muatDataAdmin();
+                }, 200);
             } else {
-                alert('Password salah!');
+                tampilkanToast('Password salah!', 'error');
             }
         };
     }

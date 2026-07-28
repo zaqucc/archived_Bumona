@@ -53,10 +53,13 @@ function tampilkanProduk() {
         const hargaHtml = produk.diskon > 0
             ? `<div class="flex flex-col"><span class="text-[10px] text-slate-400 line-through font-medium leading-none mb-0.5">${formatRupiah(produk.harga)}</span><span class="text-[15px] font-extrabold text-slate-900 tracking-tight leading-none">${formatRupiah(hargaFinal)}</span></div>`
             : `<span class="text-[15px] font-extrabold text-slate-900 tracking-tight leading-none">${formatRupiah(hargaFinal)}</span>`;
-        const tombolBeliHtml = `<button onclick="tambahKeKeranjang(event, '${produk.id}', '${produk.nama}', ${hargaFinal}, '${produk.foto}', '${produk.kategori}')" class="w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center shrink-0 aspect-square hover:bg-orange-700 active:scale-90 active:shadow-none hover:shadow-md hover:shadow-orange-600/20 transition-all duration-150 relative z-20 cursor-pointer"><span class="material-icons-round text-[15px]">shopping_bag</span></button>`;
+
+        // === TOMBOL BELI DENGAN PARAMETER DISKON ===
+        const tombolBeliHtml = `<button onclick="tambahKeKeranjang(event, '${produk.id}', '${produk.nama}', ${hargaFinal}, '${produk.foto}', '${produk.kategori}', ${produk.harga}, ${produk.diskon})" class="w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center shrink-0 aspect-square hover:bg-orange-700 active:scale-90 active:shadow-none hover:shadow-md hover:shadow-orange-600/20 transition-all duration-150 relative z-20 cursor-pointer"><span class="material-icons-round text-[15px]">shopping_bag</span></button>`;
         const linkDetail = `view.html?id=${produk.id}`;
         let cardStyle = "col-span-1";
         let innerHtml = '';
+
         if (urutan === 0) {
             cardStyle = "col-span-2";
             innerHtml = `<div onclick="window.location.href='${linkDetail}'" class="w-full h-56 sm:h-72 relative overflow-hidden bg-slate-100 z-10">${badgeDiskon}<img src="${produk.foto}" alt="${produk.nama}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"></div>
@@ -79,6 +82,7 @@ function tampilkanProduk() {
                     <div class="flex items-center justify-between mt-3">${hargaHtml}${tombolBeliHtml}</div>
                 </div>`;
         }
+
         const card = document.createElement('div');
         card.className = `bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md relative overflow-hidden flex flex-col justify-between active:scale-[0.98] transition-all duration-200 cursor-pointer m-0 group ${cardStyle}`;
         card.innerHTML = innerHtml + '<div class="absolute -right-8 -bottom-8 w-24 h-24 bg-slate-50 rounded-full pointer-events-none group-hover:bg-orange-50/50 transition-colors duration-300"></div>';
