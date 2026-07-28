@@ -14,16 +14,7 @@ function formatWA(waRaw) {
     const str = String(waRaw || '');
     const bersih = str.replace(/\D/g, '');
     if (!bersih || bersih.length < 6) return null;
-
-    let final;
-    if (bersih.startsWith('62')) {
-        final = bersih;
-    } else if (bersih.startsWith('0')) {
-        final = '62' + bersih.substring(1);
-    } else {
-        final = '62' + bersih;
-    }
-
+    const final = bersih.startsWith('62') ? bersih : '62' + bersih.slice(1);
     return `https://wa.me/${final}`;
 }
 
@@ -113,7 +104,8 @@ function renderOrderAdmin(data) {
             const total = Number(order["total bayar"] || 0);
             const metode = order["metode pembayaran"] || "-";
             const status = (order["status"] || "Pending").trim();
-            const bukti = String(order["bukti pembayaran"] || "");
+            // Bukti tidak diperlukan
+            // const bukti = String(order["bukti pembayaran"] || "");
 
             if (status.toLowerCase() === 'sukses' || status.toLowerCase() === 'selesai') {
                 omzet += total;
@@ -140,10 +132,9 @@ function renderOrderAdmin(data) {
                 ? `<a href="${waLink}" target="_blank" class="text-emerald-600 hover:underline font-semibold">${waSafe}</a>`
                 : waSafe;
 
-            const buktiEscaped = bukti.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             const idOrderEscaped = escapeHTML(idOrder).replace(/'/g, "\\'");
 
-            const cardHTML = `
+            kontainer.innerHTML += `
             <div class="card-item-admin bg-white rounded-2xl p-4.5 border border-slate-100 shadow-2xs space-y-3.5" data-search="${escapeHTML(idOrder)} ${escapeHTML(nama)}">
                 <div class="flex justify-between items-start border-b border-slate-50 pb-2.5">
                     <div>
@@ -163,7 +154,7 @@ function renderOrderAdmin(data) {
                     <div class="bg-slate-50 p-2.5 rounded-xl"><span class="text-[9px] text-slate-400 font-bold block">Total Bayar</span><p class="text-sm font-black text-orange-600">${formatRupiah(total)}</p></div>
                 </div>
                 <div class="flex gap-2 pt-1 items-center justify-between border-t border-slate-50 mt-1 text-[11px]">
-                    <div>${bukti.length > 50 ? `<button onclick="bukaPratinjau('${buktiEscaped}')" class="font-bold text-orange-600 cursor-pointer bg-orange-50 px-2.5 py-1.5 rounded-lg">Lihat Bukti</button>` : '<span class="text-slate-400 italic">Tanpa Gambar</span>'}</div>
+                    <div><span class="text-slate-400 italic">Tanpa Bukti</span></div>
                     ${status.toLowerCase() === 'pending' ? `
                     <div class="flex gap-1.5">
                         <button onclick="updateStatus('${idOrderEscaped}', 'Gagal')" class="bg-rose-50 text-rose-600 font-bold px-3 py-1.5 rounded-lg border border-rose-100 cursor-pointer">Tolak</button>
@@ -171,8 +162,6 @@ function renderOrderAdmin(data) {
                     </div>` : ''}
                 </div>
             </div>`;
-
-            kontainer.innerHTML += cardHTML;
         } catch (itemErr) {
             console.error('Gagal merender order:', order, itemErr);
         }
@@ -190,13 +179,12 @@ function filterTabelOrderAdmin() {
     });
 }
 
+// Fungsi pratinjau gambar dihapus karena tidak ada bukti
 function bukaPratinjau(src) {
-    const modal = document.getElementById('img-modal');
-    document.getElementById('img-target-preview').src = src;
-    modal.classList.remove('opacity-0', 'pointer-events-none');
+    // tidak digunakan
 }
 function tutupPratinjauGambar() {
-    document.getElementById('img-modal').classList.add('opacity-0', 'pointer-events-none');
+    // tidak digunakan
 }
 
 async function updateStatus(id, statusBaru) {

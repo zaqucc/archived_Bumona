@@ -1,10 +1,10 @@
 // ==========================================
-// api.js – Konversi Link Google Drive + Diskon + API
+// api.js – API Calls & Data Processing
 // ==========================================
 
 /**
- * Mengubah link Google Drive menjadi direct link usercontent
- * agar bisa ditampilkan di <img> tanpa CORS / blokir.
+ * Mengubah link Google Drive menjadi direct link (usercontent)
+ * agar gambar bisa ditampilkan di halaman.
  */
 function convertDriveLink(url) {
     if (!url || typeof url !== 'string') return '';
@@ -28,16 +28,19 @@ function convertDriveLink(url) {
     }
 
     if (id) {
-        // Format usercontent – sudah Anda uji dan berhasil
         return `https://drive.usercontent.google.com/download?id=${id}&export=view`;
     }
 
-    // Bukan link Google Drive → kembalikan apa adanya
+    // Bukan link Google Drive, kembalikan apa adanya
     return url;
 }
 
 // ========== FUNGSI API ==========
 
+/**
+ * Ambil semua produk dari Google Sheet Katalog.
+ * Hasilnya disimpan di sessionStorage sebagai cache.
+ */
 async function ambilProdukDariServer() {
     try {
         const response = await fetch(`${API_KATALOG}?get_katalog=true`);
@@ -59,7 +62,8 @@ async function ambilProdukDariServer() {
                         .replace(',', '.')
                         .replace(/[^0-9.]/g, '');
                     let val = parseFloat(raw) || 0;
-                    if (val > 0 && val <= 1) val = val * 100; // desimal → persen
+                    // Jika nilai antara 0 dan 1 (misal 0.1), anggap sebagai desimal → ubah ke persen
+                    if (val > 0 && val <= 1) val = val * 100;
                     return val;
                 })(),
 
@@ -76,17 +80,23 @@ async function ambilProdukDariServer() {
                 jumlah_terjual: Number(item["jumlah terjual"]) || 0
             })).filter(Boolean);
 
+            // Simpan ke sessionStorage untuk cache
             sessionStorage.setItem("cache_produk", JSON.stringify(hasil));
             return hasil;
         }
         return [];
     } catch (error) {
         console.error("Gagal fetch katalog:", error);
+        // Ambil dari cache jika ada, agar halaman tidak kosong
         const cache = sessionStorage.getItem("cache_produk");
         return cache ? JSON.parse(cache) : [];
     }
 }
 
+/**
+ * Kirim transaksi baru ke Google Sheet Transaksi.
+ * Menggunakan GET tanpa mengirim bukti pembayaran.
+ */
 async function kirimTransaksi(data) {
     const params = new URLSearchParams({
         simpan_transaksi: "true",
@@ -96,8 +106,8 @@ async function kirimTransaksi(data) {
         nomor_whatsapp: data.nomor_whatsapp,
         item_belanja: data.item_belanja,
         total_bayar: data.total_bayar,
-        metode_pembayaran: data.metode_pembayaran,
-        bukti_pembayaran: data.bukti_pembayaran
+        metode_pembayaran: data.metode_pembayaran
+        // bukti_pembayaran tidak dikirim
     }).toString();
 
     const url = `${API_TRANSAKSI}?${params}`;
@@ -118,18 +128,27 @@ async function kirimTransaksi(data) {
     }
 }
 
+/**
+ * Ambil riwayat transaksi berdasarkan email pelanggan.
+ */
 async function ambilRiwayat(email) {
     const response = await fetch(`${API_TRANSAKSI}?email=${encodeURIComponent(email)}`);
     if (!response.ok) throw new Error("Gagal mengambil riwayat");
     return await response.json();
 }
 
+/**
+ * Ambil semua data transaksi untuk dashboard admin.
+ */
 async function tarikDataAdmin() {
     const response = await fetch(`${API_TRANSAKSI}?admin_pull=true`);
     if (!response.ok) throw new Error("Gagal tarik data admin");
     return await response.json();
 }
 
+/**
+ * Perbarui status transaksi (Pending, Sukses, Gagal) dari dashboard admin.
+ */
 async function updateStatusOrder(idOrder, statusBaru) {
     const params = new URLSearchParams({
         update_status: "true",

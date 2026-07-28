@@ -1,3 +1,7 @@
+// ==========================================
+// helper.js – Fungsi Bantu + Kompresi Agresif
+// ==========================================
+
 function formatRupiah(angka) {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka || 0);
 }
@@ -11,6 +15,7 @@ function konversiKeBase64(file) {
     });
 }
 
+// Kompresi gambar agresif – ubah ukuran & kualitas agar base64 tetap kecil
 function kompresGambar(file, maxWidth = 300, quality = 0.4) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -20,14 +25,17 @@ function kompresGambar(file, maxWidth = 300, quality = 0.4) {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
+
                 if (width > maxWidth) {
                     height = Math.round((height * maxWidth) / width);
                     width = maxWidth;
                 }
+
                 canvas.width = width;
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
+
                 const dataUrl = canvas.toDataURL('image/jpeg', quality);
                 resolve(dataUrl);
             };
@@ -39,6 +47,7 @@ function kompresGambar(file, maxWidth = 300, quality = 0.4) {
     });
 }
 
+// ========== TOAST ==========
 let toastTimer = null;
 function tampilkanToast(pesan, tipe = 'info') {
     const toast = document.getElementById('custom-toast');
@@ -47,6 +56,7 @@ function tampilkanToast(pesan, tipe = 'info') {
     const iconBox = document.getElementById('toast-icon-box');
     const icon = document.getElementById('toast-icon');
     const title = document.getElementById('toast-title');
+
     msg.innerText = pesan;
     if (tipe === 'success') {
         title.innerText = "Sukses";
@@ -61,6 +71,7 @@ function tampilkanToast(pesan, tipe = 'info') {
         iconBox.className = "w-8 h-8 bg-sky-500/10 text-sky-400 rounded-xl flex items-center justify-center shrink-0";
         icon.className = "bi bi-info-circle-fill text-[16px]";
     }
+
     clearTimeout(toastTimer);
     toast.classList.remove('opacity-0', 'scale-90', 'pointer-events-none');
     toast.classList.add('opacity-100', 'scale-100', 'translate-y-2');
@@ -70,6 +81,7 @@ function tampilkanToast(pesan, tipe = 'info') {
     }, 3000);
 }
 
+// ========== MODAL ==========
 function tampilkanModal(judul, pesan, jenis = 'info', callback = null) {
     const modal = document.getElementById('custom-modal');
     if (!modal) return;
@@ -78,8 +90,10 @@ function tampilkanModal(judul, pesan, jenis = 'info', callback = null) {
     const mIconBox = document.getElementById('modal-icon-container');
     const mIcon = document.getElementById('modal-icon');
     const mBtn = document.getElementById('modal-btn');
+
     mTitle.innerText = judul;
     mMsg.innerText = pesan;
+
     if (jenis === 'success') {
         mIconBox.className = "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-sm bg-emerald-50 text-emerald-500";
         mIcon.innerText = "check_circle";
@@ -93,9 +107,11 @@ function tampilkanModal(judul, pesan, jenis = 'info', callback = null) {
         mIcon.innerText = "info";
         mBtn.className = "w-full bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs py-3.5 rounded-xl transition-all cursor-pointer shadow-xs";
     }
+
     modal.classList.remove('opacity-0', 'pointer-events-none');
     modal.querySelector('.transform').classList.remove('scale-95');
     modal.querySelector('.transform').classList.add('scale-100');
+
     mBtn.onclick = function() {
         modal.classList.add('opacity-0', 'pointer-events-none');
         modal.querySelector('.transform').classList.remove('scale-100');
