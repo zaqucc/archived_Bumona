@@ -7,7 +7,7 @@ const API_KATALOG = "https://script.google.com/macros/s/AKfycbwVtMijANfwWI4VbKYm
 const API_TRANSAKSI = "https://script.google.com/macros/s/AKfycbwhPKAlS6BkpY_qeOn47z9KmdVSZVFOupenn0fBEuNWCKhyqX0w2R449qymiegawsMTrQ/exec";
 
 // --- Kontak ---
-const NOMOR_WA = "6281234567890";            // Nomor WhatsApp admin (tanpa +)
+const NOMOR_WA = "6289618527700";            // Nomor WhatsApp admin (tanpa +)
 const EMAIL_ADMIN = "admin@bumona.com";       // Email admin (opsional)
 
 // --- Keamanan ---
@@ -15,22 +15,22 @@ const ADMIN_PASSWORD = "admin123";            // Ganti dengan password kuat
 
 // --- Data Rekening (pusat) ---
 const DATABASE_REKENING = {
-    'Dana':         { nomor: '0895-1234-5678', nama: 'Luki Bumona' },
-    'Ovo':          { nomor: '0895-1234-5678', nama: 'Luki Bumona' },
-    'ShopeePay':    { nomor: '0895-1234-5678', nama: 'Luki Bumona' },
-    'Gopay':        { nomor: '0895-1234-5678', nama: 'Luki Bumona' },
-    'LinkAja':      { nomor: '0895-1234-5678', nama: 'Luki Bumona' },
-    'Bank BCA':     { nomor: '8410-1234-567',  nama: 'Luki Bumona' },
-    'Bank Mandiri': { nomor: '1310-0012-3456', nama: 'Luki Bumona' },
-    'Bank BRI':     { nomor: '0021-0105-1234-503', nama: 'Luki Bumona' },
-    'Bank BNI':     { nomor: '0234-567-890',   nama: 'Luki Bumona' }
+    'Dana':         { nomor: '089618527700', nama: 'Mona Luki' },
+    'Ovo':          { nomor: '089618527700', nama: 'Mona Luki' },
+    'ShopeePay':    { nomor: '089618527700', nama: 'Mona Luki' },
+    'Gopay':        { nomor: '#', nama: 'Mona Luki' },
+    'LinkAja':      { nomor: '#', nama: 'Mona Luki' },
+    'Bank BCA':     { nomor: '4180618878',  nama: 'Mona Luki' },
+    'Bank Mandiri': { nomor: '1310020452159', nama: 'Mona Luki' },
+    'Bank BRI':     { nomor: '431801014146532', nama: 'Mona Luki' },
+    'Bank BSI':     { nomor: '1039775545',   nama: 'Mona Luki' }
 };
 
 // --- Sosial Media ---
 const SOSMED = {
-    instagram: "https://instagram.com/archived.bumona",
-    tiktok: "https://tiktok.com/@archived.bumona",
-    youtube: "https://youtube.com/@archived.bumona"
+    instagram: "https://www.instagram.com/mona.luki?igsh=dWx3b2JjOW0yenhk",
+    tiktok: "www.tiktok.com/@_nakiiiii",
+    youtube: "#"
 };
 
 // --- Brand ---
